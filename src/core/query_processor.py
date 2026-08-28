@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List
 
+from src.core.chinese_tokenizer import tokenize_search_text
+
 
 class QueryIntent(Enum):
     FACTUAL = "factual"
@@ -86,12 +88,16 @@ class QueryProcessor:
 
     def normalize(self, text: str) -> str:
         text = text.lower().strip()
-        text = re.sub(r"[^a-z0-9\s]", " ", text)
+        text = re.sub(r"[^\u4e00-\u9fffA-Za-z0-9_.\-\s]", " ", text)
         text = re.sub(r"\s+", " ", text)
         return text
 
     def _tokenize(self, text: str) -> List[str]:
-        return [w for w in text.split() if w not in _STOP_WORDS and len(w) > 1]
+        return [
+            token
+            for token in tokenize_search_text(text)
+            if token not in _STOP_WORDS and len(token) > 1
+        ]
 
     def _expand(self, tokens: List[str]) -> List[str]:
         extra: List[str] = []

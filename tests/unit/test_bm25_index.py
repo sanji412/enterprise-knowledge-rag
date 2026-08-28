@@ -63,6 +63,30 @@ class TestScore:
         results = index_with_docs.score("machine learning intelligence")
         assert results[0]["id"] == "doc3"
 
+    def test_bm25_retrieves_chinese_exact_term(self):
+        index = BM25Index()
+        index.add_document(
+            "annual-leave",
+            "员工转正后可以申请年假，需提前提交审批。",
+            {},
+        )
+
+        rows = index.score("年假怎么申请", top_k=5)
+
+        assert [row["id"] for row in rows] == ["annual-leave"]
+
+    def test_bm25_retrieves_mixed_product_code(self):
+        index = BM25Index()
+        index.add_document(
+            "atlas-e03",
+            "ATLAS-X2 出现 E03 时长按复位键 8 秒",
+            {},
+        )
+
+        rows = index.score("星云网关 E03 如何复位", top_k=5)
+
+        assert [row["id"] for row in rows] == ["atlas-e03"]
+
 
 class TestComposeIndexText:
     def test_title_terms_match_when_absent_from_chunk(self):
@@ -117,6 +141,27 @@ class TestPersistence:
                 data = json.load(f)
             assert "inverted_index" in data
             assert "documents" in data
+            assert data["tokenizer"] == "jieba-v1"
+        finally:
+            os.unlink(path)
+
+    def test_load_rejects_unknown_tokenizer(self, index_with_docs):
+        with tempfile.NamedTemporaryFile(
+            suffix=".json",
+            delete=False,
+            mode="w",
+        ) as f:
+            path = f.name
+        try:
+            index_with_docs.save(path)
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+            data["tokenizer"] = "other-v2"
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f)
+
+            with pytest.raises(ValueError, match="Unsupported BM25 tokenizer"):
+                BM25Index.load(path)
         finally:
             os.unlink(path)
 

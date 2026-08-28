@@ -6,9 +6,10 @@
 '''
 import json
 import math
-import re
 from collections import Counter
 from typing import Dict, List, Optional
+
+from src.core.chinese_tokenizer import tokenize_search_text
 
 
 class BM25Index:
@@ -49,9 +50,7 @@ class BM25Index:
 
     @staticmethod
     def _tokenize(text: str) -> List[str]:
-        text = text.lower()
-        text = re.sub(r'[^a-z0-9\s]', ' ', text)
-        return text.split()
+        return tokenize_search_text(text)
 
     # --- indexing ---
 
@@ -114,9 +113,10 @@ class BM25Index:
     # --- persistence ---
 
     def save(self, file_path: str) -> None:
-        with open(file_path, 'w') as f:
+        with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(
                 {
+                    'tokenizer': 'jieba-v1',
                     'k1': self.k1,
                     'b': self.b,
                     'documents': self.documents,
@@ -126,12 +126,16 @@ class BM25Index:
                     'inverted_index': self.inverted_index,
                 },
                 f,
+                ensure_ascii=False,
             )
 
     @classmethod
     def load(cls, file_path: str) -> "BM25Index":
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
+        tokenizer = data.get('tokenizer')
+        if tokenizer not in (None, 'jieba-v1'):
+            raise ValueError(f"Unsupported BM25 tokenizer: {tokenizer}")
         index = cls(k1=data['k1'], b=data['b'])
         index.documents = data['documents']
         index._doc_lengths = data['doc_lengths']
