@@ -8,7 +8,6 @@ import pytest
 from src.core.bm25_index import BM25Index
 from src.core.rag_orchestrator import (
     BM25_INDEX_PATH,
-    CHROMA_PATH,
     QueryRequest,
     RAGOrchestrator,
 )
@@ -35,25 +34,24 @@ def test_session_scope_skips_missing_global_bm25(orchestrator: RAGOrchestrator, 
     sess_bm25 = tmp_path / "sess" / "bm25_index.json"
     sess_bm25.parent.mkdir(parents=True)
     _save_minimal_bm25(sess_bm25)
-    sess_chroma = tmp_path / "sess" / "chroma"
-
     index, db, _qp, session_pair, effective, _profile = orchestrator._load_components(
         QueryRequest(
             query_text="q",
             knowledge_scope="session",
             session_bm25_index_path=str(sess_bm25),
             session_collection_name="sess_test",
-            session_chroma_path=str(sess_chroma),
         )
     )
 
     assert effective == "session"
     assert session_pair is not None
     assert len(index.documents) == 0
-    assert db._chroma_path == CHROMA_PATH
+    assert db.mode == "prod"
+    assert db._qdrant_url == "http://localhost:16333"
     s_idx, s_db = session_pair
     assert len(s_idx.documents) == 1
-    assert s_db._chroma_path == str(sess_chroma)
+    assert s_db.mode == "prod"
+    assert s_db._qdrant_url == "http://localhost:16333"
 
 
 def test_both_scope_downgrades_when_global_bm25_missing(
@@ -73,7 +71,6 @@ def test_both_scope_downgrades_when_global_bm25_missing(
             knowledge_scope="both",
             session_bm25_index_path=str(sess_bm25),
             session_collection_name="sess_test",
-            session_chroma_path=str(tmp_path / "sess" / "chroma"),
         )
     )
 
@@ -91,7 +88,8 @@ def test_global_scope_still_loads_default_path(orchestrator: RAGOrchestrator):
     assert effective == "global"
     assert session_pair is None
     assert len(index.documents) >= 0
-    assert db._chroma_path == CHROMA_PATH
+    assert db.mode == "prod"
+    assert db._qdrant_url == "http://localhost:16333"
 
 
 def test_global_scope_uses_empty_bm25_when_index_missing(

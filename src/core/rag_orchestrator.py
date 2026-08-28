@@ -27,9 +27,9 @@ from src.core.vector_search import VectorSearch
 from src.evaluation.truthfulness import TruthfulnessResult, TruthfulnessScorer
 from src.utils.config import Config
 from src.utils.database import VectorDatabase
+from src.utils.vector_factory import build_vector_database
 
 BM25_INDEX_PATH = "data/embeddings/bm25_index.json"
-CHROMA_PATH = "data/embeddings/chroma"
 COLLECTION_NAME = "documents"
 logger = logging.getLogger(__name__)
 
@@ -103,23 +103,15 @@ class RAGOrchestrator:
     ]:
         qp = QueryProcessor()
         profile_name = self.cfg.embeddings.resolve_profile_name(req.embedding_profile)
-        profile = self.cfg.embeddings.resolve_profile(req.embedding_profile)
         requested_scope = (req.knowledge_scope or "global").strip().lower()
         session_pair: Optional[tuple[BM25Index, VectorDatabase]] = None
         effective_scope = requested_scope
         if requested_scope in {"session", "both"}:
-            has_paths = bool(
-                req.session_bm25_index_path and req.session_collection_name and req.session_chroma_path
-            )
+            has_paths = bool(req.session_bm25_index_path and req.session_collection_name)
             if has_paths and os.path.exists(str(req.session_bm25_index_path)):
                 try:
                     s_index = BM25Index.load(str(req.session_bm25_index_path))
-                    s_db = VectorDatabase(
-                        mode="dev",
-                        chroma_path=str(req.session_chroma_path),
-                        embedding_profile_name=profile_name,
-                        embedding_profile=profile,
-                    )
+                    s_db = build_vector_database(self.cfg, profile_name)
                     session_pair = (s_index, s_db)
                 except Exception:
                     effective_scope = "global"
@@ -128,12 +120,7 @@ class RAGOrchestrator:
 
         # Session-only: never touch the global corpus (HF Spaces upload-only demos).
         if effective_scope == "session" and session_pair is not None:
-            placeholder_db = VectorDatabase(
-                mode="dev",
-                chroma_path=CHROMA_PATH,
-                embedding_profile_name=profile_name,
-                embedding_profile=profile,
-            )
+            placeholder_db = build_vector_database(self.cfg, profile_name)
             return BM25Index(), placeholder_db, qp, session_pair, effective_scope, profile_name
 
         # Both: if the global BM25 file is absent, fall back to session-only rather than failing.
@@ -147,12 +134,7 @@ class RAGOrchestrator:
                 BM25_INDEX_PATH,
             )
             effective_scope = "session"
-            placeholder_db = VectorDatabase(
-                mode="dev",
-                chroma_path=CHROMA_PATH,
-                embedding_profile_name=profile_name,
-                embedding_profile=profile,
-            )
+            placeholder_db = build_vector_database(self.cfg, profile_name)
             return BM25Index(), placeholder_db, qp, session_pair, effective_scope, profile_name
 
         if not os.path.isfile(BM25_INDEX_PATH):
@@ -164,12 +146,7 @@ class RAGOrchestrator:
             index = BM25Index()
         else:
             index = BM25Index.load(BM25_INDEX_PATH)
-        db = VectorDatabase(
-            mode="dev",
-            chroma_path=CHROMA_PATH,
-            embedding_profile_name=profile_name,
-            embedding_profile=profile,
-        )
+        db = build_vector_database(self.cfg, profile_name)
         return index, db, qp, session_pair, effective_scope, profile_name
 
     def _retrieve(

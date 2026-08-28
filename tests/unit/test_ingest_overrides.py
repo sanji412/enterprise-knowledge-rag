@@ -36,6 +36,18 @@ class _FakeDB:
         return []
 
 
+def _fake_build_vector_database(cfg, embedding_profile_name, collection_name=None):
+    db = _FakeDB(
+        mode="prod" if cfg.vector_store.backend == "qdrant" else "dev",
+        chroma_path=cfg.vector_store.chroma_path,
+        embedding_profile_name=embedding_profile_name,
+        embedding_profile=cfg.embeddings.resolve_profile(embedding_profile_name),
+    )
+    if collection_name:
+        db.create_collection(collection_name)
+    return db
+
+
 def test_ingest_respects_override_paths(monkeypatch, tmp_path):
     docs = tmp_path / "docs"
     docs.mkdir()
@@ -47,7 +59,11 @@ def test_ingest_respects_override_paths(monkeypatch, tmp_path):
         saved_paths.append(path)
 
     monkeypatch.setattr(ingest_mod.BM25Index, "save", _fake_save)
-    monkeypatch.setattr(ingest_mod, "VectorDatabase", _FakeDB)
+    monkeypatch.setattr(
+        ingest_mod,
+        "build_vector_database",
+        _fake_build_vector_database,
+    )
 
     bm25_path = tmp_path / "custom" / "bm25.json"
     chroma_path = tmp_path / "custom" / "chroma"
@@ -71,6 +87,10 @@ def test_ingest_defaults_still_work(monkeypatch, tmp_path):
         saved_paths.append(path)
 
     monkeypatch.setattr(ingest_mod.BM25Index, "save", _fake_save)
-    monkeypatch.setattr(ingest_mod, "VectorDatabase", _FakeDB)
+    monkeypatch.setattr(
+        ingest_mod,
+        "build_vector_database",
+        _fake_build_vector_database,
+    )
     ingest_mod.ingest(str(docs), processor=_FakeProcessor())
     assert saved_paths[-1] == ingest_mod.BM25_INDEX_PATH

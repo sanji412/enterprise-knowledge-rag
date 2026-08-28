@@ -15,6 +15,7 @@ from src.core.document_processor import DocumentProcessor
 from src.utils.config import load_config
 from src.utils.database import VectorDatabase
 from src.utils.log import get_logger, metrics, track_duration
+from src.utils.vector_factory import build_vector_database
 
 logger = get_logger("ingest")
 
@@ -54,7 +55,9 @@ def ingest(
     )
     resolved_chunk_strategy = cfg.chunking.resolve_strategy(chunk_strategy)
     resolved_embedding_profile_name = cfg.embeddings.resolve_profile_name(embedding_profile)
-    resolved_embedding_profile = cfg.embeddings.resolve_profile(embedding_profile)
+    if chroma_path and cfg.vector_store.backend == "chroma":
+        vector_store = cfg.vector_store.model_copy(update={"chroma_path": chroma_path})
+        cfg = cfg.model_copy(update={"vector_store": vector_store})
 
     # ── 2. Components ─────────────────────────────────────────────────────────
     processor = processor or DocumentProcessor(
@@ -64,13 +67,11 @@ def ingest(
         chunk_strategy=resolved_chunk_strategy,
     )
     index = BM25Index()
-    db = VectorDatabase(
-        mode="dev",
-        chroma_path=chroma_path,
-        embedding_profile_name=resolved_embedding_profile_name,
-        embedding_profile=resolved_embedding_profile,
+    db = build_vector_database(
+        cfg,
+        resolved_embedding_profile_name,
+        collection_name=collection_name,
     )
-    db.create_collection(collection_name)
 
     # ── 3. Process files ──────────────────────────────────────────────────────
     files = collect_files(docs_path)
@@ -129,7 +130,15 @@ def ingest(
     print(f"  Files skipped    : {skipped} (duplicates)")
     print(f"  Total chunks     : {total_chunks}")
     print(f"  BM25 index saved : {bm25_index_path}")
-    print(f"  Vector DB        : {chroma_path}  (collection={collection_name!r})")
+    vector_location = (
+        cfg.vector_store.qdrant_url
+        if cfg.vector_store.backend == "qdrant"
+        else cfg.vector_store.chroma_path
+    )
+    print(
+        f"  Vector DB        : {cfg.vector_store.backend} at {vector_location} "
+        f"(collection={collection_name!r})"
+    )
 
     perf = metrics.summary()
     if perf:

@@ -51,6 +51,11 @@ embeddings:
       dimension: 384
       options: {}
 
+vector_store:
+  backend: qdrant
+  qdrant_url: http://localhost:16333
+  chroma_path: data/embeddings/chroma
+
 # File paths
 data_dir: data/documents
 output_dir: data/embeddings

@@ -33,11 +33,11 @@ from src.core.vector_search import VectorSearch
 from src.utils.config import Config, load_config
 from src.utils.database import VectorDatabase
 from src.utils.log import get_logger
+from src.utils.vector_factory import build_vector_database
 
 logger = get_logger("query")
 
 BM25_INDEX_PATH = "data/embeddings/bm25_index.json"
-CHROMA_PATH = "data/embeddings/chroma"
 COLLECTION_NAME = "documents"
 DEFAULT_LLM_MODEL = os.environ.get("OLLAMA_QUERY_MODEL", "deepseek-r1:8b")
 
@@ -56,15 +56,12 @@ def load_components(
         )
         index = BM25Index()
 
-    logger.info("Connecting to ChromaDB at %s", CHROMA_PATH)
     profile_name = cfg.embeddings.resolve_profile_name(embedding_profile)
-    profile = cfg.embeddings.resolve_profile(embedding_profile)
-    db = VectorDatabase(
-        mode="dev",
-        chroma_path=CHROMA_PATH,
-        embedding_profile_name=profile_name,
-        embedding_profile=profile,
+    logger.info(
+        "Connecting to %s vector store",
+        cfg.vector_store.backend,
     )
+    db = build_vector_database(cfg, profile_name)
 
     return index, db, QueryProcessor()
 

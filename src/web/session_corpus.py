@@ -30,6 +30,7 @@ def _session_ttl_seconds() -> int:
 class SessionCorpus:
     session_id: str
     upload_dir: Path
+    # Deprecated compatibility path. Qdrant session isolation uses collection_name.
     chroma_path: Path
     bm25_index_path: Path
     collection_name: str

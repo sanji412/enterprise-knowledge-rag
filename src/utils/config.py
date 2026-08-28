@@ -273,6 +273,14 @@ class EmbeddingSettings(BaseModel):
         return self.profiles[self.resolve_profile_name(requested)]
 
 
+class VectorStoreSettings(BaseModel):
+    backend: str = Field("qdrant", pattern="^(qdrant|chroma)$")
+    qdrant_url: str = Field(
+        default_factory=lambda: _env_or("QDRANT_URL", "http://localhost:16333"),
+    )
+    chroma_path: str = Field("data/embeddings/chroma")
+
+
 class APISettings(BaseModel):
     auth_enabled: bool = Field(True, description="Require API key for protected routes")
     api_keys: List[str] = Field(default_factory=list, description="Static API keys (optional)")
@@ -304,6 +312,7 @@ class Config(BaseModel):
     evaluation: EvaluationSettings = Field(default_factory=EvaluationSettings)
     chunking: ChunkingSettings = Field(default_factory=ChunkingSettings)
     embeddings: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
+    vector_store: VectorStoreSettings = Field(default_factory=VectorStoreSettings)
 
 
 def provider_api_key_env(provider: str) -> str | None:

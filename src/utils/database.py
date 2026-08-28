@@ -9,6 +9,7 @@ import logging
 import os
 import time
 from typing import Any, Dict, List, Optional, Sequence
+from uuid import NAMESPACE_URL, uuid5
 
 import chromadb
 import ollama
@@ -23,6 +24,10 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 100
 
 
+def _qdrant_point_id(chunk_id: str) -> str:
+    return str(uuid5(NAMESPACE_URL, f"enterprise-rag:{chunk_id}"))
+
+
 class VectorDatabase:
     def __init__(
         self,
@@ -30,6 +35,7 @@ class VectorDatabase:
         qdrant_host: str = "localhost",
         qdrant_port: int = 6333,
         chroma_path: str = "./chroma_db",
+        qdrant_url: Optional[str] = None,
         embedding_profile_name: str = "ollama_nomic",
         embedding_profile: Optional[EmbeddingProfile] = None,
     ):
@@ -37,6 +43,7 @@ class VectorDatabase:
         self._chroma_path = chroma_path
         self._qdrant_host = qdrant_host
         self._qdrant_port = qdrant_port
+        self._qdrant_url = qdrant_url or f"http://{qdrant_host}:{qdrant_port}"
         self._chroma_client: Optional[chromadb.ClientAPI] = None
         self._qdrant_client: Optional[Any] = None  # QdrantClient, imported lazily
         self._ollama_client = ollama.Client(host=self._resolve_ollama_host())
@@ -63,8 +70,8 @@ class VectorDatabase:
         if self._qdrant_client is None:
             from qdrant_client import QdrantClient  # noqa: PLC0415
 
-            self._qdrant_client = QdrantClient(host=self._qdrant_host, port=self._qdrant_port)
-            logger.info("Qdrant initialized at %s:%s", self._qdrant_host, self._qdrant_port)
+            self._qdrant_client = QdrantClient(url=self._qdrant_url)
+            logger.info("Qdrant initialized at %s", self._qdrant_url)
         return self._qdrant_client
 
     # --- embedding ---
@@ -77,17 +84,35 @@ class VectorDatabase:
             or "http://localhost:11434"
         )
 
-    def _generate_st_embedding(self, text: str, model_name: str) -> List[float]:
+    def _generate_st_embeddings(
+        self,
+        texts: List[str],
+        model_name: str,
+    ) -> List[List[float]]:
         if model_name not in self._st_model_cache:
             from sentence_transformers import SentenceTransformer  # noqa: PLC0415
+
             self._st_model_cache[model_name] = SentenceTransformer(model_name)
             logger.info("SentenceTransformer loaded: %s", model_name)
-        return self._st_model_cache[model_name].encode(text, show_progress_bar=False).tolist()
+        options = dict(self.embedding_profile.options or {})
+        normalize = bool(options.get("normalize_embeddings", False))
+        vectors = self._st_model_cache[model_name].encode(
+            texts,
+            show_progress_bar=False,
+            normalize_embeddings=normalize,
+        )
+        return [
+            vector.tolist() if hasattr(vector, "tolist") else list(vector)
+            for vector in vectors
+        ]
 
     def generate_embedding(self, text: str) -> List[float]:
         provider = self.embedding_profile.provider.strip().lower()
         if provider == "sentence_transformers":
-            return self._generate_st_embedding(text, self.embedding_profile.model)
+            return self._generate_st_embeddings(
+                [text],
+                self.embedding_profile.model,
+            )[0]
         attempts = 3
         last_error: Exception | None = None
         for idx in range(attempts):
@@ -104,6 +129,9 @@ class VectorDatabase:
         raise RuntimeError("Unexpected Ollama embedding retry state")
 
     def generate_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
+        provider = self.embedding_profile.provider.strip().lower()
+        if provider == "sentence_transformers":
+            return self._generate_st_embeddings(texts, self.embedding_profile.model)
         return [self.generate_embedding(t) for t in texts]
 
     # --- collection management ---
@@ -128,12 +156,41 @@ class VectorDatabase:
             logger.info("ChromaDB collection %r ready", profile_collection_name)
         else:
             from qdrant_client.http.models import Distance, VectorParams  # noqa: PLC0415
-            if not self.qdrant_client.collection_exists(profile_collection_name):
-                self.qdrant_client.create_collection(
-                    collection_name=profile_collection_name,
-                    vectors_config=VectorParams(size=self.embedding_profile.dimension, distance=Distance.COSINE),
-                )
-                logger.info("Qdrant collection %r created", profile_collection_name)
+
+            if self.qdrant_client.collection_exists(profile_collection_name):
+                info = self.qdrant_client.get_collection(profile_collection_name)
+                actual_size = self._qdrant_collection_vector_size(info)
+                expected_size = int(self.embedding_profile.dimension)
+                if actual_size != expected_size:
+                    raise ValueError(
+                        f"Qdrant collection {profile_collection_name!r} vector dimension mismatch: "
+                        f"expected {expected_size}, got {actual_size}"
+                    )
+                return
+            self.qdrant_client.create_collection(
+                collection_name=profile_collection_name,
+                vectors_config=VectorParams(
+                    size=self.embedding_profile.dimension,
+                    distance=Distance.COSINE,
+                ),
+            )
+            logger.info("Qdrant collection %r created", profile_collection_name)
+
+    @staticmethod
+    def _qdrant_collection_vector_size(info: Any) -> int:
+        vectors = info.config.params.vectors
+        if hasattr(vectors, "size"):
+            return int(vectors.size)
+        if isinstance(vectors, dict):
+            if "size" in vectors:
+                return int(vectors["size"])
+            if len(vectors) == 1:
+                only = next(iter(vectors.values()))
+                if hasattr(only, "size"):
+                    return int(only.size)
+                if isinstance(only, dict) and "size" in only:
+                    return int(only["size"])
+        raise ValueError("Unable to determine Qdrant collection vector dimension")
 
     # --- insert ---
 
@@ -142,6 +199,7 @@ class VectorDatabase:
 
         Each document dict must have 'id' and 'text'; all other keys go into metadata.
         """
+        self.create_collection(collection_name)
         profile_collection_name = self.collection_name_for_profile(collection_name)
         for batch_start in range(0, len(documents), BATCH_SIZE):
             batch = documents[batch_start: batch_start + BATCH_SIZE]
@@ -166,9 +224,17 @@ class VectorDatabase:
                 from qdrant_client.http.models import PointStruct  # noqa: PLC0415
                 points = [
                     PointStruct(
-                        id=doc["id"],
+                        id=_qdrant_point_id(str(doc["id"])),
                         vector=embedding,
-                        payload={k: v for k, v in doc.items() if k not in ("id", "text")},
+                        payload={
+                            "chunk_id": str(doc["id"]),
+                            "text": str(doc["text"]),
+                            "metadata": {
+                                k: v
+                                for k, v in doc.items()
+                                if k not in ("id", "text")
+                            },
+                        },
                     )
                     for doc, embedding in zip(batch, embeddings)
                 ]
@@ -211,7 +277,7 @@ class VectorDatabase:
             search_filter: Optional[Any] = None
             if filters:
                 conditions: Sequence[FieldCondition] = [
-                    FieldCondition(key=k, match=MatchValue(value=v))
+                    FieldCondition(key=f"metadata.{k}", match=MatchValue(value=v))
                     for k, v in filters.items()
                 ]
                 search_filter = Filter(must=list(conditions))
@@ -222,7 +288,17 @@ class VectorDatabase:
                 limit=top_k,
                 query_filter=search_filter,
             )
-            return [
-                {"id": hit.id, "metadata": hit.payload, "score": hit.score}
-                for hit in response.points
-            ]
+            rows: List[Dict] = []
+            for hit in response.points:
+                payload = dict(hit.payload or {})
+                score = float(hit.score)
+                rows.append(
+                    {
+                        "id": str(payload["chunk_id"]),
+                        "text": str(payload.get("text", "")),
+                        "metadata": dict(payload.get("metadata") or {}),
+                        "score": score,
+                        "distance": 1.0 - score,
+                    }
+                )
+            return rows
