@@ -29,6 +29,7 @@ def test_session_scope_requires_uploads(monkeypatch, tmp_path):
         retrieved = []
         truthfulness = None
         step_latencies = {}
+        embedding_profile = ""
 
     monkeypatch.setattr(api_main._orchestrator, "run", lambda req: _FakeOut())
     client = TestClient(api_main.app)
@@ -53,6 +54,7 @@ def test_both_scope_degrades_to_global_without_uploads(monkeypatch, tmp_path):
         retrieved = []
         truthfulness = None
         step_latencies = {}
+        embedding_profile = ""
 
     def _fake_run(req):
         captured["scope"] = req.knowledge_scope

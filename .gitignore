@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 .Python
 .venv/
+.uv-cache/
+.uv-python/
+.npm-cache/
 venv/
 *.egg-info/
 .pytest_cache/
@@ -12,6 +15,7 @@ venv/
 
 # Local tools / IDE
 .env
+docker/.env
 .cursor/
 .claude/
 

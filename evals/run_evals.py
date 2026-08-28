@@ -33,7 +33,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import sys
 import time
 from datetime import datetime
@@ -69,9 +68,18 @@ class MockPipeline:
 
     def run(self, question: str) -> Dict[str, Any]:
         answer_map = {
-            "rag": "RAG stands for Retrieval-Augmented Generation. It enhances LLM responses by retrieving relevant documents before generation.",
-            "bm25": "BM25 is a ranking function for information retrieval that scores document relevance using term frequency and document length normalization.",
-            "vector": "A vector database stores and indexes high-dimensional vector embeddings for fast similarity search.",
+            "rag": (
+                "RAG stands for Retrieval-Augmented Generation. It enhances LLM responses by "
+                "retrieving relevant documents before generation."
+            ),
+            "bm25": (
+                "BM25 is a ranking function for information retrieval that scores document relevance "
+                "using term frequency and document length normalization."
+            ),
+            "vector": (
+                "A vector database stores and indexes high-dimensional vector embeddings "
+                "for fast similarity search."
+            ),
         }
         q = question.lower()
         answer = "This is a sample answer for testing purposes."
@@ -82,7 +90,14 @@ class MockPipeline:
         return {
             "answer": answer,
             "retrieved": [{"id": "mock-chunk-1", "text": f"Context for: {question[:40]}"}],
-            "citations": [{"chunk_id": "mock-chunk-1", "resolved": True, "verification_score": 0.75, "verification": "supported"}],
+            "citations": [
+                {
+                    "chunk_id": "mock-chunk-1",
+                    "resolved": True,
+                    "verification_score": 0.75,
+                    "verification": "supported",
+                }
+            ],
             "embedding_profile": None,
             "chunk_strategy": None,
         }
@@ -101,7 +116,7 @@ class LivePipeline:
         embedding_profile: Optional[str] = None,
         chunk_strategy: Optional[str] = None,
     ) -> None:
-        from src.core.rag_orchestrator import QueryRequest, RAGOrchestrator
+        from src.core.rag_orchestrator import RAGOrchestrator
         from src.utils.config import load_config
 
         cfg = load_config("config.yaml")
@@ -296,8 +311,10 @@ def _try_ragas_faithfulness(
 ) -> Optional[float]:
     """Run RAGAS Faithfulness metric; returns None if ragas is unavailable."""
     try:
-        from ragas import EvaluationDataset  # type: ignore[import-untyped]
-        from ragas import evaluate
+        from ragas import (
+            EvaluationDataset,  # type: ignore[import-untyped]
+            evaluate,
+        )
         from ragas.dataset_schema import SingleTurnSample  # type: ignore[import-untyped]
         from ragas.metrics import Faithfulness  # type: ignore[import-untyped]
 
@@ -519,7 +536,13 @@ def write_report(
         md_lines.append(f"### {r['question'][:80]}")
         md_lines.append(f"**Answer:** {r['answer'][:200]}")
         score_parts = []
-        for k in ("nli_faithfulness", "ragas_faithfulness", "answer_relevancy", "answer_correctness_rouge", "citation_rate"):
+        for k in (
+            "nli_faithfulness",
+            "ragas_faithfulness",
+            "answer_relevancy",
+            "answer_correctness_rouge",
+            "citation_rate",
+        ):
             if k in r:
                 score_parts.append(f"{k}={r[k]:.3f}")
         md_lines.append(f"**Scores:** {' | '.join(score_parts)}")
@@ -576,6 +599,7 @@ def main() -> int:
         try:
             from src.core.llm_provider import LLMProviderRouter
             from src.utils.config import load_config
+
             from evals.adapters.ragas_llm_adapter import make_ragas_llm
 
             cfg = load_config("config.yaml")
@@ -590,8 +614,8 @@ def main() -> int:
     faithfulness_scorer = None
     if not args.no_nli:
         try:
-            from src.utils.config import load_config
             from src.evaluation.truthfulness import TruthfulnessScorer
+            from src.utils.config import load_config
 
             cfg = load_config("config.yaml")
             if cfg.evaluation.inline_enabled or args.force_nli:
