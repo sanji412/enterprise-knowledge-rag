@@ -92,31 +92,46 @@ def ingest(
             skipped += 1
             continue
 
-        chunks = result["chunks"]
-        metadata = result["metadata"]
+        chunk_records = result["chunk_records"]
 
-        # BM25 indexing (weighted title/metadata in index body; display text stays chunk-only)
-        for i, chunk in enumerate(chunks):
-            doc_id = f"{os.path.basename(file_path)}__chunk{i}"
-            index_body = BM25Index.compose_index_text(chunk, metadata)
-            index.add_document(doc_id, chunk, metadata, index_text=index_body)
-
-        # Vector DB indexing
-        vector_docs = [
-            {
-                "id": f"{os.path.basename(file_path)}__chunk{i}",
-                "text": chunk,
+        # Both indexes receive the same stable ID, text and metadata contract.
+        vector_docs: list[dict] = []
+        for record in chunk_records:
+            record_id = str(record["id"])
+            record_text = str(record["text"])
+            record_metadata = {
+                **dict(record["metadata"]),
                 "chunk_strategy": resolved_chunk_strategy,
                 "embedding_profile": resolved_embedding_profile_name,
-                **metadata,
             }
-            for i, chunk in enumerate(chunks)
-        ]
+            index_body = BM25Index.compose_index_text(
+                record_text,
+                record_metadata,
+            )
+            index.add_document(
+                record_id,
+                record_text,
+                record_metadata,
+                index_text=index_body,
+            )
+            vector_docs.append(
+                {
+                    "id": record_id,
+                    "text": record_text,
+                    "metadata": record_metadata,
+                }
+            )
+
+        # Vector DB indexing
         with track_duration("vector_indexing", logger):
             db.add_documents(collection_name, vector_docs)
 
-        total_chunks += len(chunks)
-        logger.info("Indexed %d chunks from %s", len(chunks), os.path.basename(file_path))
+        total_chunks += len(chunk_records)
+        logger.info(
+            "Indexed %d chunks from %s",
+            len(chunk_records),
+            os.path.basename(file_path),
+        )
 
     # ── 4. Persist BM25 index ─────────────────────────────────────────────────
     os.makedirs(os.path.dirname(bm25_index_path), exist_ok=True)

@@ -15,6 +15,12 @@ import PyPDF2
 import tiktoken
 from bs4 import BeautifulSoup
 from docx import Document
+from src.core.chunk_schema import (
+    ChunkRecord,
+    SourceUnit,
+    parse_heading_anchor,
+    stable_chunk_id,
+)
 
 
 class _RegexTokenizer:
@@ -68,12 +74,44 @@ class DocumentProcessor:
         text = self.extract_text(file_path)
         if self._is_duplicate(text):
             return None
-        metadata = self.extract_metadata(file_path)
         cleaned_text = self.clean_text(text)
-        chunks = self.chunk_text(cleaned_text)
+        metadata = self.extract_metadata(file_path)
+        filename = os.path.basename(file_path)
+        document_hash = hashlib.sha256(cleaned_text.encode('utf-8')).hexdigest()
+        document_id = document_hash[:16]
+        document_metadata = {
+            **metadata,
+            'document_id': document_id,
+            'filename': filename,
+            'content_hash': document_hash,
+        }
+        if self.chunk_strategy == "zh_structure":
+            units = self._extract_source_units(file_path)
+            records = self._build_chunk_records(
+                units,
+                document_metadata,
+                document_id,
+            )
+        else:
+            chunks = self.chunk_text(cleaned_text)
+            records = self._build_chunk_records(
+                [SourceUnit(text=chunk) for chunk in chunks],
+                document_metadata,
+                document_id,
+                units_are_chunks=True,
+            )
         return {
-            'metadata': metadata,
-            'chunks': chunks,
+            'text': cleaned_text,
+            'metadata': document_metadata,
+            'chunks': [record.text for record in records],
+            'chunk_records': [
+                {
+                    'id': record.id,
+                    'text': record.text,
+                    'metadata': record.metadata,
+                }
+                for record in records
+            ],
         }
 
     def _is_duplicate(self, text: str) -> bool:
@@ -129,7 +167,233 @@ class DocumentProcessor:
             return self._chunk_text_domain(text, domain="medical")
         if strategy == "legal":
             return self._chunk_text_domain(text, domain="legal")
+        if strategy == "zh_structure":
+            return self._chunk_zh_text(text)
         raise ValueError(f"Unknown chunking strategy: {strategy!r}")
+
+    def _build_chunk_records(
+        self,
+        units: List[SourceUnit],
+        document_metadata: Dict[str, Any],
+        document_id: str,
+        *,
+        units_are_chunks: bool = False,
+    ) -> List[ChunkRecord]:
+        records: List[ChunkRecord] = []
+        chunk_index = 0
+        for unit in units:
+            unit_text = self.clean_text(unit.text)
+            if not unit_text:
+                continue
+            chunks = [unit_text] if units_are_chunks else self._chunk_zh_text(unit_text)
+            for chunk in chunks:
+                section_key = (
+                    unit.evidence_anchor
+                    or unit.section_title
+                    or (f"page-{unit.page_number}" if unit.page_number else "body")
+                )
+                chunk_id = stable_chunk_id(
+                    document_id,
+                    section_key,
+                    chunk_index,
+                    chunk,
+                )
+                chunk_hash = hashlib.sha256(chunk.encode('utf-8')).hexdigest()
+                record_metadata = {
+                    **document_metadata,
+                    'page_number': unit.page_number,
+                    'section_title': unit.section_title,
+                    'evidence_anchor': unit.evidence_anchor,
+                    'chunk_index': chunk_index,
+                    'content_hash': chunk_hash,
+                    'chunk_id': chunk_id,
+                }
+                records.append(
+                    ChunkRecord(
+                        id=chunk_id,
+                        text=chunk,
+                        metadata=record_metadata,
+                    )
+                )
+                chunk_index += 1
+        return records
+
+    def _extract_source_units(self, file_path: str) -> List[SourceUnit]:
+        ext = os.path.splitext(file_path)[1].lower()
+        if ext == '.pdf':
+            return self._extract_pdf_source_units(file_path)
+        if ext == '.docx':
+            return self._extract_docx_source_units(file_path)
+        if ext == '.md':
+            return self._extract_markdown_source_units(file_path)
+        if ext == '.html':
+            with open(file_path, 'r', encoding='utf-8') as f:
+                soup = BeautifulSoup(f, 'html.parser')
+            text = soup.get_text(separator='\n')
+        else:
+            text = self._extract_plain_text(file_path)
+        return [
+            SourceUnit(text=paragraph)
+            for paragraph in re.split(r"\n\s*\n", text)
+            if paragraph.strip()
+        ]
+
+    def _extract_pdf_source_units(self, file_path: str) -> List[SourceUnit]:
+        with open(file_path, 'rb') as f:
+            reader = PyPDF2.PdfReader(f)
+            units: List[SourceUnit] = []
+            for page_number, page in enumerate(reader.pages, start=1):
+                text = page.extract_text() or ''
+                if text.strip():
+                    units.append(
+                        SourceUnit(
+                            text=text,
+                            page_number=page_number,
+                        )
+                    )
+            return units
+
+    def _extract_docx_source_units(self, file_path: str) -> List[SourceUnit]:
+        doc = Document(file_path)
+        units: List[SourceUnit] = []
+        section_title: str | None = None
+        evidence_anchor: str | None = None
+        for paragraph in doc.paragraphs:
+            text = paragraph.text.strip()
+            if not text:
+                continue
+            style_name = str(getattr(paragraph.style, 'name', '') or '')
+            if style_name.lower().startswith('heading'):
+                section_title, evidence_anchor = parse_heading_anchor(text)
+                continue
+            units.append(
+                SourceUnit(
+                    text=text,
+                    section_title=section_title,
+                    evidence_anchor=evidence_anchor,
+                )
+            )
+        return units
+
+    def _extract_markdown_source_units(self, file_path: str) -> List[SourceUnit]:
+        text = self._extract_plain_text(file_path)
+        units: List[SourceUnit] = []
+        paragraph_lines: List[str] = []
+        section_title: str | None = None
+        evidence_anchor: str | None = None
+
+        def flush_paragraph() -> None:
+            if not paragraph_lines:
+                return
+            units.append(
+                SourceUnit(
+                    text='\n'.join(paragraph_lines),
+                    section_title=section_title,
+                    evidence_anchor=evidence_anchor,
+                )
+            )
+            paragraph_lines.clear()
+
+        for line in text.splitlines():
+            heading = re.match(r"^\s{0,3}#{1,6}\s+(.+?)\s*$", line)
+            if heading:
+                flush_paragraph()
+                section_title, evidence_anchor = parse_heading_anchor(
+                    heading.group(1),
+                )
+            elif not line.strip():
+                flush_paragraph()
+            else:
+                paragraph_lines.append(line.strip())
+        flush_paragraph()
+        return units
+
+    def _chunk_zh_text(self, text: str) -> List[str]:
+        cleaned = self.clean_text(text)
+        if not cleaned:
+            return []
+        sentences = [
+            sentence.strip()
+            for sentence in re.findall(r"[^。！？；]+[。！？；]?", cleaned)
+            if sentence.strip()
+        ]
+        chunks: List[str] = []
+        current = ""
+        for sentence in sentences:
+            if len(sentence) > self.chunk_size:
+                if current:
+                    chunks.append(current)
+                    current = ""
+                chunks.extend(self._split_long_zh_text(sentence))
+                continue
+            if not current:
+                current = sentence
+                continue
+            if len(current) + len(sentence) <= self.chunk_size:
+                current += sentence
+                continue
+            chunks.append(current)
+            overlap = self._safe_overlap_suffix(current)
+            current = overlap + sentence
+            if len(current) > self.chunk_size:
+                current = sentence
+        if current:
+            chunks.append(current)
+        return chunks
+
+    def _split_long_zh_text(self, text: str) -> List[str]:
+        chunks: List[str] = []
+        start = 0
+        while start < len(text):
+            end = min(start + self.chunk_size, len(text))
+            end = self._safe_product_code_boundary(text, start, end)
+            chunks.append(text[start:end])
+            if end >= len(text):
+                break
+            next_start = max(start + 1, end - self.overlap)
+            while (
+                next_start > start
+                and next_start < len(text)
+                and self._is_product_code_char(text[next_start - 1])
+                and self._is_product_code_char(text[next_start])
+            ):
+                next_start -= 1
+            start = next_start if next_start > start else end
+        return chunks
+
+    def _safe_overlap_suffix(self, text: str) -> str:
+        if self.overlap <= 0:
+            return ""
+        start = max(0, len(text) - self.overlap)
+        while (
+            start > 0
+            and start < len(text)
+            and self._is_product_code_char(text[start - 1])
+            and self._is_product_code_char(text[start])
+        ):
+            start -= 1
+        return text[start:]
+
+    @classmethod
+    def _safe_product_code_boundary(
+        cls,
+        text: str,
+        start: int,
+        end: int,
+    ) -> int:
+        original_end = end
+        while (
+            end > start
+            and end < len(text)
+            and cls._is_product_code_char(text[end - 1])
+            and cls._is_product_code_char(text[end])
+        ):
+            end -= 1
+        return end if end > start else original_end
+
+    @staticmethod
+    def _is_product_code_char(char: str) -> bool:
+        return char.isascii() and (char.isalnum() or char in "-_.")
 
     def _chunk_text_token_window(self, text: str) -> List[str]:
         token_ids = self._tokenizer.encode(text)

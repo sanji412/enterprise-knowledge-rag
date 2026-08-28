@@ -190,7 +190,14 @@ class EvaluationSettings(BaseModel):
 class ChunkingSettings(BaseModel):
     default_strategy: str = Field("tiktoken", description="Default chunking strategy")
     allowed_strategies: List[str] = Field(
-        default_factory=lambda: ["tiktoken", "spacy", "nltk", "medical", "legal"],
+        default_factory=lambda: [
+            "tiktoken",
+            "zh_structure",
+            "spacy",
+            "nltk",
+            "medical",
+            "legal",
+        ],
         description="Allowed chunking strategies for ingestion",
     )
 

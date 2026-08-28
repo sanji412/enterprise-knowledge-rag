@@ -6,6 +6,7 @@ chunking:
   default_strategy: tiktoken
   allowed_strategies:
     - tiktoken
+    - zh_structure
     - spacy
     - nltk
     - medical

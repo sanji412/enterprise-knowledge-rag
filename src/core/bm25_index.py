@@ -33,9 +33,12 @@ class BM25Index:
         """Repeat title (and light metadata) so BM25 can field-bias without a multi-field engine."""
         metadata = metadata or {}
         parts: List[str] = []
-        title = str(metadata.get("title") or "").strip()
-        if title:
-            parts.extend([title] * max(1, title_weight))
+        headings = [
+            str(metadata.get("title") or "").strip(),
+            str(metadata.get("section_title") or "").strip(),
+        ]
+        for heading in dict.fromkeys(value for value in headings if value):
+            parts.extend([heading] * max(1, title_weight))
         parts.append(chunk_text)
         extras: List[str] = []
         ft = metadata.get("file_type")

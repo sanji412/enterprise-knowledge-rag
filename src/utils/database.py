@@ -28,6 +28,19 @@ def _qdrant_point_id(chunk_id: str) -> str:
     return str(uuid5(NAMESPACE_URL, f"enterprise-rag:{chunk_id}"))
 
 
+def _document_metadata(document: Dict) -> Dict:
+    nested = document.get("metadata")
+    metadata = dict(nested) if isinstance(nested, dict) else {}
+    metadata.update(
+        {
+            key: value
+            for key, value in document.items()
+            if key not in ("id", "text", "metadata")
+        }
+    )
+    return metadata
+
+
 class VectorDatabase:
     def __init__(
         self,
@@ -211,7 +224,14 @@ class VectorDatabase:
             if self.mode == "dev":
                 collection = self.chroma_client.get_or_create_collection(name=profile_collection_name)
                 metadatas = [
-                    ({k: v for k, v in doc.items() if k not in ("id", "text")} or None)
+                    (
+                        {
+                            key: value
+                            for key, value in _document_metadata(doc).items()
+                            if value is not None
+                        }
+                        or None
+                    )
                     for doc in batch
                 ]
                 collection.upsert(  # type: ignore[arg-type]
@@ -229,11 +249,7 @@ class VectorDatabase:
                         payload={
                             "chunk_id": str(doc["id"]),
                             "text": str(doc["text"]),
-                            "metadata": {
-                                k: v
-                                for k, v in doc.items()
-                                if k not in ("id", "text")
-                            },
+                            "metadata": _document_metadata(doc),
                         },
                     )
                     for doc, embedding in zip(batch, embeddings)

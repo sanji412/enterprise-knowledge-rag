@@ -8,6 +8,17 @@ class _FakeProcessor:
         return {
             "chunks": ["chunk one"],
             "metadata": {"title": "doc.md"},
+            "chunk_records": [
+                {
+                    "id": "stable-section-id",
+                    "text": "chunk one",
+                    "metadata": {
+                        "chunk_id": "stable-section-id",
+                        "title": "doc.md",
+                        "section_title": "Section",
+                    },
+                }
+            ],
         }
 
 
@@ -94,3 +105,31 @@ def test_ingest_defaults_still_work(monkeypatch, tmp_path):
     )
     ingest_mod.ingest(str(docs), processor=_FakeProcessor())
     assert saved_paths[-1] == ingest_mod.BM25_INDEX_PATH
+
+
+def test_ingest_uses_same_stable_id_for_both_indexes(monkeypatch, tmp_path):
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "a.md").write_text("hello world", encoding="utf-8")
+    built: list[_FakeDB] = []
+
+    def fake_factory(cfg, embedding_profile_name, collection_name=None):
+        db = _fake_build_vector_database(
+            cfg,
+            embedding_profile_name,
+            collection_name,
+        )
+        built.append(db)
+        return db
+
+    monkeypatch.setattr(ingest_mod, "build_vector_database", fake_factory)
+    index, _db = ingest_mod.ingest(
+        str(docs),
+        bm25_index_path=str(tmp_path / "bm25.json"),
+        processor=_FakeProcessor(),
+    )
+
+    vector_doc = built[0].added[0][1][0]
+    assert index.documents[0]["id"] == "stable-section-id"
+    assert vector_doc["id"] == "stable-section-id"
+    assert vector_doc["metadata"]["chunk_id"] == "stable-section-id"

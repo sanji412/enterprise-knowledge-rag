@@ -1,5 +1,6 @@
 import os
 import tempfile
+from types import SimpleNamespace
 
 import pytest
 from src.core.document_processor import DocumentProcessor
@@ -151,3 +152,89 @@ class TestProcessDocument:
         finally:
             os.unlink(path1)
             os.unlink(path2)
+
+
+def test_markdown_chunks_keep_section_anchor_and_stable_id(tmp_path):
+    path = tmp_path / "handbook.md"
+    path.write_text(
+        "# 员工手册\n"
+        "## 年假 {#handbook.leave.annual}\n"
+        "员工转正后可申请年假。\n"
+        "## 报销 {#handbook.expense}\n"
+        "发票须在 30 天内提交。",
+        encoding="utf-8",
+    )
+    processor = DocumentProcessor(
+        chunk_size=600,
+        overlap=100,
+        tokenizer_name="gpt2",
+        chunk_strategy="zh_structure",
+    )
+
+    result = processor.process_document(str(path))
+
+    assert result is not None
+    records = result["chunk_records"]
+    annual = next(
+        record
+        for record in records
+        if record["metadata"]["section_title"] == "年假"
+    )
+    assert annual["metadata"]["filename"] == "handbook.md"
+    assert annual["metadata"]["evidence_anchor"] == "handbook.leave.annual"
+    assert annual["metadata"]["chunk_id"] == annual["id"]
+    fresh = DocumentProcessor(
+        chunk_size=600,
+        overlap=100,
+        tokenizer_name="gpt2",
+        chunk_strategy="zh_structure",
+    )
+    again = fresh.process_document(str(path))
+    assert again is not None
+    assert annual["id"] in {record["id"] for record in again["chunk_records"]}
+
+
+def test_pdf_chunks_keep_one_based_page_number(tmp_path, monkeypatch):
+    path = tmp_path / "policy.pdf"
+    path.write_bytes(b"%PDF-fake")
+
+    class FakePage:
+        def __init__(self, text):
+            self._text = text
+
+        def extract_text(self):
+            return self._text
+
+    def fake_reader(_file):
+        return SimpleNamespace(
+            pages=[FakePage("第一页制度。"), FakePage("第二页流程。")],
+            metadata={},
+        )
+
+    monkeypatch.setattr(
+        "src.core.document_processor.PyPDF2.PdfReader",
+        fake_reader,
+    )
+    processor = DocumentProcessor(chunk_strategy="zh_structure")
+
+    result = processor.process_document(str(path))
+
+    assert result is not None
+    page_numbers = [
+        record["metadata"]["page_number"]
+        for record in result["chunk_records"]
+    ]
+    assert page_numbers == [1, 2]
+
+
+def test_zh_structure_does_not_split_product_code():
+    processor = DocumentProcessor(
+        chunk_size=10,
+        overlap=2,
+        chunk_strategy="zh_structure",
+    )
+
+    chunks = processor.chunk_text("前缀前缀ATLAS-X2故障需要处理。")
+
+    assert any("ATLAS-X2" in chunk for chunk in chunks)
+    assert all("ATLAS" not in chunk or "ATLAS-X2" in chunk for chunk in chunks)
