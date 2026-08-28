@@ -212,6 +212,8 @@ def _retrieved_chunks_json(final: QueryResponse) -> list[dict[str, Any]]:
                 confidence=float(legacy.get("confidence") or 0.0),
                 metadata=dict(legacy.get("metadata") or {}),
                 preview=(legacy.get("text") or "")[:240],
+                cross_encoder_score=legacy.get("cross_encoder_score"),
+                rerank_position=legacy.get("rerank_position"),
             ).model_dump(),
         )
     return out
@@ -487,6 +489,7 @@ def query(
                 reranker_model=req.reranker_model,
                 include_citations=req.include_citations,
                 embedding_profile=req.embedding_profile,
+                retrieval_mode=req.retrieval_mode,
                 **session_kwargs,
             )
         )
@@ -515,6 +518,8 @@ def query(
                 confidence=float(legacy.get("confidence") or 0.0),
                 metadata=dict(legacy.get("metadata") or {}),
                 preview=(legacy.get("text") or "")[:240],
+                cross_encoder_score=legacy.get("cross_encoder_score"),
+                rerank_position=legacy.get("rerank_position"),
             )
         )
 
@@ -600,6 +605,7 @@ def query_stream(
                 reranker_model=req.reranker_model,
                 include_citations=req.include_citations,
                 embedding_profile=req.embedding_profile,
+                retrieval_mode=req.retrieval_mode,
                 **session_kwargs,
             )
             with StreamingQuerySession(_orchestrator, stream_req) as session:

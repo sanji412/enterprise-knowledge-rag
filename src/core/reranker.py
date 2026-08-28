@@ -74,7 +74,15 @@ class CrossEncoderReranker:
         ranked.sort(key=lambda x: x[1], reverse=True)
         ranked = ranked[:top_k]
 
-        return [
-            RankedResult(result=doc, cross_encoder_score=score, rerank_position=i)
-            for i, (doc, score) in enumerate(ranked)
-        ]
+        results: List[RankedResult] = []
+        for position, (doc, score) in enumerate(ranked, start=1):
+            doc.cross_encoder_score = score
+            doc.rerank_position = position
+            results.append(
+                RankedResult(
+                    result=doc,
+                    cross_encoder_score=score,
+                    rerank_position=position,
+                )
+            )
+        return results

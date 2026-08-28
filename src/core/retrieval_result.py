@@ -20,6 +20,8 @@ class RetrievalResult:
     vector_similarity: Optional[float] = None
     sources: List[str] = field(default_factory=list)
     confidence: float = 0.0
+    cross_encoder_score: Optional[float] = None
+    rerank_position: Optional[int] = None
 
     def to_legacy_dict(self) -> Dict[str, Any]:
         """Backward-compatible shape for callers expecting id/text/source/score."""
@@ -41,4 +43,6 @@ class RetrievalResult:
             "bm25_score": self.bm25_score,
             "vector_similarity": self.vector_similarity,
             "confidence": self.confidence,
+            "cross_encoder_score": self.cross_encoder_score,
+            "rerank_position": self.rerank_position,
         }

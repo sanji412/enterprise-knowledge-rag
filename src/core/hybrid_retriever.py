@@ -6,11 +6,13 @@ import hashlib
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from src.core.bm25_search import BM25Search
 from src.core.retrieval_result import RetrievalResult
 from src.core.vector_search import VectorSearch
+
+RetrievalMode = Literal["bm25", "vector", "hybrid"]
 
 
 @dataclass
@@ -100,8 +102,12 @@ class HybridRetriever:
         ck_bm25: int,
         ck_vec: int,
         collection: str,
+        mode: RetrievalMode,
     ) -> str:
-        raw = f"{collection}|{k}|{k_rrf}|{ck_bm25}|{ck_vec}|BM25:{bm25_query}|VEC:{vector_query}"
+        raw = (
+            f"{collection}|{mode}|{k}|{k_rrf}|{ck_bm25}|{ck_vec}|"
+            f"BM25:{bm25_query}|VEC:{vector_query}"
+        )
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
     def _run_bm25(self, bm25_query: str, k: int) -> List[Dict[str, Any]]:
@@ -118,13 +124,23 @@ class HybridRetriever:
         *,
         filters: Optional[Dict] = None,
         collection_name_for_cache: str = "documents",
+        mode: RetrievalMode = "hybrid",
     ) -> List[RetrievalResult]:
+        if mode not in {"bm25", "vector", "hybrid"}:
+            raise ValueError(f"Unsupported retrieval mode: {mode}")
         cfg = self.config
         ck_b = max(k, cfg.candidate_k_bm25)
         ck_v = max(k, cfg.candidate_k_vector)
 
         cache_key = self._cache_key_parts(
-            bm25_query, vector_query, k, cfg.k_rrf, ck_b, ck_v, collection_name_for_cache
+            bm25_query,
+            vector_query,
+            k,
+            cfg.k_rrf,
+            ck_b,
+            ck_v,
+            collection_name_for_cache,
+            mode,
         )
         cached = self._cache.get(cache_key)
         if cached is not None:
@@ -132,6 +148,17 @@ class HybridRetriever:
 
         bm25_hits: List[Dict[str, Any]] = []
         vec_hits: List[Dict[str, Any]] = []
+
+        if mode == "bm25":
+            bm25_hits = self._run_bm25(bm25_query, ck_b)
+            results = self._single_leg_results(bm25_hits, "bm25", k)
+            self._cache.set(cache_key, results)
+            return [RetrievalResult(**row.__dict__) for row in results]
+        if mode == "vector":
+            vec_hits = self._run_vector(vector_query, ck_v, filters)
+            results = self._single_leg_results(vec_hits, "vector", k)
+            self._cache.set(cache_key, results)
+            return [RetrievalResult(**row.__dict__) for row in results]
 
         if cfg.parallel:
             with ThreadPoolExecutor(max_workers=2) as ex:
@@ -202,6 +229,56 @@ class HybridRetriever:
 
         self._cache.set(cache_key, results)
         return [RetrievalResult(**r.__dict__) for r in results]
+
+    @staticmethod
+    def _single_leg_results(
+        hits: List[Dict[str, Any]],
+        source: Literal["bm25", "vector"],
+        k: int,
+    ) -> List[RetrievalResult]:
+        results: List[RetrievalResult] = []
+        for rank, hit in enumerate(hits[:k], start=1):
+            raw_score = hit.get("score")
+            distance = hit.get("distance")
+            vector_similarity = (
+                1.0 - float(distance)
+                if distance is not None
+                else None
+            )
+            native_score = (
+                float(raw_score or 0.0)
+                if source == "bm25"
+                else float(vector_similarity or 0.0)
+            )
+            results.append(
+                RetrievalResult(
+                    id=str(hit["id"]),
+                    text=str(hit.get("text") or ""),
+                    metadata=(
+                        dict(hit.get("metadata") or {})
+                        if isinstance(hit.get("metadata") or {}, dict)
+                        else {}
+                    ),
+                    fusion_score=native_score,
+                    bm25_rank=rank if source == "bm25" else None,
+                    vector_rank=rank if source == "vector" else None,
+                    bm25_score=(
+                        float(raw_score)
+                        if source == "bm25" and raw_score is not None
+                        else None
+                    ),
+                    vector_similarity=(
+                        vector_similarity if source == "vector" else None
+                    ),
+                    sources=[source],
+                    confidence=(
+                        max(0.0, min(1.0, vector_similarity))
+                        if source == "vector" and vector_similarity is not None
+                        else 1.0 / rank
+                    ),
+                )
+            )
+        return results
 
     @staticmethod
     def _confidence(fusion_score: float, bm25_rank: Optional[int], vec_rank: Optional[int]) -> float:

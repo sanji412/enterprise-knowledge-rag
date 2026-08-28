@@ -49,7 +49,10 @@ def test_runtime_config_endpoint():
 
 
 def test_query_endpoint(monkeypatch):
-    def _fake_run(_req):
+    captured = {}
+
+    def _fake_run(request):
+        captured["request"] = request
         return QueryResponse(
             query="q",
             provider="ollama",
@@ -66,18 +69,32 @@ def test_query_endpoint(monkeypatch):
                     "verification": "supported",
                 }
             ],
-            retrieved=[RetrievalResult(id="chunk1", text="body", confidence=0.7)],
+            retrieved=[
+                RetrievalResult(
+                    id="chunk1",
+                    text="body",
+                    confidence=0.7,
+                    cross_encoder_score=0.88,
+                    rerank_position=1,
+                )
+            ],
         )
 
     monkeypatch.setattr(api_main._orchestrator, "run", _fake_run)
     api_main._cfg.api.auth_enabled = False
     client = TestClient(app)
-    res = client.post("/query", json={"query": "hello"})
+    res = client.post(
+        "/query",
+        json={"query": "hello", "retrieval_mode": "bm25"},
+    )
     assert res.status_code == 200
     data = res.json()
     assert data["provider"] == "ollama"
     assert len(data["citations"]) == 1
     assert "embedding_profile" in data
+    assert captured["request"].retrieval_mode == "bm25"
+    assert data["retrieved"][0]["cross_encoder_score"] == 0.88
+    assert data["retrieved"][0]["rerank_position"] == 1
 
 
 def test_query_requires_api_key_when_enabled():

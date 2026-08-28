@@ -14,7 +14,7 @@ from src.core.citation_tracker import CitationTracker
 from src.core.citation_verifier import CitationVerifier
 from src.core.context_optimizer import ContextOptimizer
 from src.core.generator import GenerationResult, RAGGenerator, ValidationResult
-from src.core.hybrid_retriever import HybridRetriever
+from src.core.hybrid_retriever import HybridRetriever, RetrievalMode
 from src.core.llm_provider import LLMProviderRouter
 from src.core.observability import get_observer
 from src.core.prompt_manager import PromptManager
@@ -51,6 +51,7 @@ class QueryRequest:
     session_chroma_path: Optional[str] = None
     knowledge_scope: str = "global"
     embedding_profile: Optional[str] = None
+    retrieval_mode: RetrievalMode = "hybrid"
 
 
 @dataclass
@@ -158,6 +159,7 @@ class RAGOrchestrator:
         top_k: int,
         *,
         collection_name: str = COLLECTION_NAME,
+        retrieval_mode: RetrievalMode = "hybrid",
     ) -> List[RetrievalResult]:
         processed = qp.process_query(query_text)
         bm25_query = " ".join(processed.all_terms)
@@ -167,6 +169,7 @@ class RAGOrchestrator:
             query_text,
             k=top_k,
             collection_name_for_cache=collection_name,
+            mode=retrieval_mode,
         )
 
     @staticmethod
@@ -192,7 +195,8 @@ class RAGOrchestrator:
             reranker_model=req.reranker_model or self.cfg.reranker.model,
             corpus_fingerprint=(
                 f"{COLLECTION_NAME}:{BM25_INDEX_PATH}|{req.knowledge_scope}|"
-                f"{req.session_collection_name or '-'}:{req.session_bm25_index_path or '-'}"
+                f"{req.session_collection_name or '-'}:{req.session_bm25_index_path or '-'}|"
+                f"retrieval_mode={req.retrieval_mode}"
             ),
             response_mode="stream" if req.stream else "sync",
         )
@@ -203,6 +207,8 @@ class RAGOrchestrator:
         trace: Any,
         step_latencies: Dict[str, float],
     ) -> tuple[Union[List[RetrievalResult], List[RankedResult]], List[RetrievalResult], str]:
+        if req.retrieval_mode not in {"bm25", "vector", "hybrid"}:
+            raise ValueError(f"Unsupported retrieval_mode: {req.retrieval_mode}")
         index, db, qp, session_pair, effective_scope, profile_name = self._load_components(req)
         retrieve_k = max(req.top_k, 20) if req.use_rerank else req.top_k
 
@@ -217,9 +223,17 @@ class RAGOrchestrator:
                     qp,
                     top_k=retrieve_k,
                     collection_name=req.session_collection_name or COLLECTION_NAME,
+                    retrieval_mode=req.retrieval_mode,
                 )
             elif effective_scope == "both" and session_pair is not None:
-                global_results = self._retrieve(req.query_text, index, db, qp, top_k=retrieve_k)
+                global_results = self._retrieve(
+                    req.query_text,
+                    index,
+                    db,
+                    qp,
+                    top_k=retrieve_k,
+                    retrieval_mode=req.retrieval_mode,
+                )
                 s_index, s_db = session_pair
                 session_results = self._retrieve(
                     req.query_text,
@@ -228,10 +242,18 @@ class RAGOrchestrator:
                     qp,
                     top_k=retrieve_k,
                     collection_name=req.session_collection_name or COLLECTION_NAME,
+                    retrieval_mode=req.retrieval_mode,
                 )
                 fused = self._dedup_results(global_results + session_results, retrieve_k)
             else:
-                fused = self._retrieve(req.query_text, index, db, qp, top_k=retrieve_k)
+                fused = self._retrieve(
+                    req.query_text,
+                    index,
+                    db,
+                    qp,
+                    top_k=retrieve_k,
+                    retrieval_mode=req.retrieval_mode,
+                )
             step_latencies["retrieval"] = (time.perf_counter() - t_retrieval) * 1000.0
             s["chunks_retrieved"] = len(fused)
 

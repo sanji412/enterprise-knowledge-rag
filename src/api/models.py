@@ -21,6 +21,7 @@ class QueryRequestModel(BaseModel):
     session_id: Optional[str] = None
     knowledge_scope: Literal["global", "session", "both"] = "global"
     embedding_profile: Optional[str] = None
+    retrieval_mode: Literal["bm25", "vector", "hybrid"] = "hybrid"
 
 
 class CitationModel(BaseModel):
@@ -40,6 +41,8 @@ class RetrievedChunkModel(BaseModel):
     confidence: float = 0.0
     metadata: Dict[str, Any] = Field(default_factory=dict)
     preview: str = ""
+    cross_encoder_score: Optional[float] = None
+    rerank_position: Optional[int] = None
 
 
 class TruthfulnessModel(BaseModel):
