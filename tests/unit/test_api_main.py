@@ -26,11 +26,14 @@ def test_llm_config_endpoint():
     res = client.get("/config/llm")
     assert res.status_code == 200
     data = res.json()
-    assert data["default_provider"]
-    assert "ollama" in data["allowed_models_by_provider"]
-    assert isinstance(data["allowed_models_by_provider"]["ollama"], list)
+    assert data["default_provider"] == "deepseek"
+    assert list(data["allowed_models_by_provider"]) == ["deepseek"]
+    assert data["allowed_models_by_provider"]["deepseek"] == [
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+    ]
     assert isinstance(data["provider_key_configured"], dict)
-    assert "ollama" in data["provider_key_configured"]
+    assert "deepseek" in data["provider_key_configured"]
     assert isinstance(data["demo_mode"], bool)
 
 

@@ -104,7 +104,10 @@ class GenerationSettings(BaseModel):
 
 
 class LLMSettings(BaseModel):
-    default_provider: str = Field("ollama", description="Default provider: ollama/openai/anthropic/gemini")
+    default_provider: str = Field(
+        "ollama",
+        description="Default provider: ollama/deepseek/openai/anthropic/gemini",
+    )
     default_model_by_provider: Dict[str, str] = Field(
         default_factory=lambda: {
             "ollama": "qwen2.5:7b",
@@ -122,6 +125,10 @@ class LLMSettings(BaseModel):
         }
     )
     request_timeout_seconds: int = Field(60, ge=5, le=600)
+    deepseek_base_url: str = Field(
+        default_factory=lambda: _env_or("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+        description="DeepSeek OpenAI-compatible API base URL",
+    )
     openai_base_url: str = Field(
         default_factory=lambda: _env_or("OPENAI_BASE_URL", "https://api.openai.com/v1"),
         description="OpenAI-compatible API base URL",
@@ -294,6 +301,8 @@ class Config(BaseModel):
 
 def provider_api_key_env(provider: str) -> str | None:
     p = provider.strip().lower()
+    if p == "deepseek":
+        return "DEEPSEEK_API_KEY"
     if p == "openai":
         return "OPENAI_API_KEY"
     if p == "anthropic":

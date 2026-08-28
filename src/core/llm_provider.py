@@ -104,15 +104,28 @@ class OllamaProvider:
         raise RuntimeError("Unexpected Ollama retry state")
 
 
-class OpenAIProvider:
-    def __init__(self, base_url: str, timeout_seconds: int) -> None:
+class OpenAICompatibleProvider:
+    def __init__(
+        self,
+        base_url: str,
+        timeout_seconds: int,
+        *,
+        provider_name: str,
+        api_key_env: str,
+        extra_body: Optional[dict[str, object]] = None,
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
+        self.provider_name = provider_name
+        self.api_key_env = api_key_env
+        self.extra_body = dict(extra_body or {})
 
     def _key(self, api_key_override: Optional[str] = None) -> str:
-        key = api_key_override or os.getenv("OPENAI_API_KEY")
+        key = api_key_override or os.getenv(self.api_key_env)
         if not key:
-            raise ValueError("OPENAI_API_KEY is required for OpenAI provider")
+            raise ValueError(
+                f"{self.api_key_env} is required for {self.provider_name} provider"
+            )
         return key
 
     def generate(self, prompt: str, model: str, api_key_override: Optional[str] = None) -> str:
@@ -123,10 +136,11 @@ class OpenAIProvider:
                 "model": model,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.1,
+                **self.extra_body,
             },
             timeout=self.timeout_seconds,
         )
-        _raise_for_status_with_detail(resp, "openai")
+        _raise_for_status_with_detail(resp, self.provider_name)
         data = resp.json()
         return str(data["choices"][0]["message"]["content"])
 
@@ -139,11 +153,12 @@ class OpenAIProvider:
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.1,
                 "stream": True,
+                **self.extra_body,
             },
             timeout=self.timeout_seconds,
             stream=True,
         ) as resp:
-            _raise_for_status_with_detail(resp, "openai")
+            _raise_for_status_with_detail(resp, self.provider_name)
             for raw in resp.iter_lines(decode_unicode=True):
                 if not raw:
                     continue
@@ -161,6 +176,16 @@ class OpenAIProvider:
                 piece = delta.get("content")
                 if piece:
                     yield str(piece)
+
+
+class OpenAIProvider(OpenAICompatibleProvider):
+    def __init__(self, base_url: str, timeout_seconds: int) -> None:
+        super().__init__(
+            base_url,
+            timeout_seconds,
+            provider_name="openai",
+            api_key_env="OPENAI_API_KEY",
+        )
 
 
 class AnthropicProvider:
@@ -299,6 +324,13 @@ class LLMProviderRouter:
         self._providers: dict[str, LLMProvider] = {
             "ollama": OllamaProvider(settings.ollama_base_url),
             "openai": OpenAIProvider(settings.openai_base_url, settings.request_timeout_seconds),
+            "deepseek": OpenAICompatibleProvider(
+                settings.deepseek_base_url,
+                settings.request_timeout_seconds,
+                provider_name="deepseek",
+                api_key_env="DEEPSEEK_API_KEY",
+                extra_body={"thinking": {"type": "disabled"}},
+            ),
             "anthropic": AnthropicProvider(settings.anthropic_base_url, settings.request_timeout_seconds),
             "gemini": GeminiProvider(settings.gemini_base_url, settings.request_timeout_seconds),
         }

@@ -7,6 +7,8 @@ from src.core.rag_orchestrator import QueryResponse
 def test_query_contract_fields(monkeypatch):
     # Avoid 429 when Redis-backed limiter shares a key with many earlier /query calls in the suite.
     monkeypatch.setattr(api_main, "_enforce_rate_limit", lambda _client_key: None)
+    # The contract test stubs generation, so authentication is outside its scope.
+    monkeypatch.setattr(api_main._cfg.api, "auth_enabled", False)
 
     def _fake_run(_req):
         return QueryResponse(

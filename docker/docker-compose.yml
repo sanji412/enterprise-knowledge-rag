@@ -12,6 +12,8 @@ services:
       - DOC_PROFILE=${DOC_PROFILE:-demo}
       - DOC_DEMO_UPLOADS=${DOC_DEMO_UPLOADS:-1}
       - DOC_API_KEYS=${DOC_API_KEYS:-change-me}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}

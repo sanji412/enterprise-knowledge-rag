@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 import yaml
-from src.utils.config import Config, doc_ollama_runtime_enabled, load_config, provider_api_key_env
+from src.utils.config import Config, LLMSettings, doc_ollama_runtime_enabled, load_config, provider_api_key_env
 
 
 def _write_config(data: dict) -> str:
@@ -97,10 +97,34 @@ class TestLoadConfig:
 
 
 def test_provider_api_key_env():
+    assert provider_api_key_env("deepseek") == "DEEPSEEK_API_KEY"
     assert provider_api_key_env("openai") == "OPENAI_API_KEY"
     assert provider_api_key_env("anthropic") == "ANTHROPIC_API_KEY"
     assert provider_api_key_env("gemini") == "GEMINI_API_KEY"
     assert provider_api_key_env("ollama") is None
+
+
+def test_deepseek_defaults_are_openai_compatible(monkeypatch):
+    monkeypatch.delenv("DEEPSEEK_BASE_URL", raising=False)
+    settings = LLMSettings(
+        default_provider="deepseek",
+        default_model_by_provider={"deepseek": "deepseek-v4-flash"},
+        allowed_models_by_provider={
+            "deepseek": ["deepseek-v4-flash", "deepseek-v4-pro"],
+        },
+    )
+
+    assert settings.deepseek_base_url == "https://api.deepseek.com"
+    assert settings.resolve_model("deepseek", None) == "deepseek-v4-flash"
+
+
+def test_project_config_exposes_only_deepseek():
+    settings = load_config("config.yaml").llm
+
+    assert settings.default_provider == "deepseek"
+    assert settings.allowed_models_by_provider == {
+        "deepseek": ["deepseek-v4-flash", "deepseek-v4-pro"],
+    }
 
 
 class TestDocOllamaRuntimeToggle:
