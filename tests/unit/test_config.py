@@ -127,6 +127,18 @@ def test_project_config_exposes_only_deepseek():
     }
 
 
+def test_chinese_models_are_default():
+    cfg = load_config("config.yaml")
+    profile = cfg.embeddings.resolve_profile(None)
+
+    assert cfg.embeddings.default_profile == "st_bge_large_zh"
+    assert profile.provider == "sentence_transformers"
+    assert profile.model == "BAAI/bge-large-zh-v1.5"
+    assert profile.dimension == 1024
+    assert profile.options["normalize_embeddings"] is True
+    assert cfg.reranker.model == "BAAI/bge-reranker-v2-m3"
+
+
 class TestDocOllamaRuntimeToggle:
     def test_explicit_disable(self, monkeypatch):
         monkeypatch.setenv("DOC_OLLAMA_ENABLED", "0")

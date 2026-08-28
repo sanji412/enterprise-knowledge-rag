@@ -86,9 +86,9 @@ def _prefer_non_ollama_embedding_profile(cfg: Config) -> Config:
 
 
 class RerankerSettings(BaseModel):
-    model: str = Field("cross-encoder/ms-marco-MiniLM-L-6-v2", description="Cross-encoder HF id")
-    batch_size: int = Field(32, ge=1)
-    score_threshold: float = Field(0.1, description="Minimum CE score to keep a candidate")
+    model: str = Field("BAAI/bge-reranker-v2-m3", description="Cross-encoder HF id")
+    batch_size: int = Field(8, ge=1)
+    score_threshold: float = Field(0.0, description="Minimum CE score to keep a candidate")
     top_k: int = Field(5, ge=1, description="Chunks to return after reranking")
 
 
@@ -210,9 +210,16 @@ class EmbeddingProfile(BaseModel):
 
 
 class EmbeddingSettings(BaseModel):
-    default_profile: str = Field("ollama_nomic", description="Default embedding profile")
+    default_profile: str = Field("st_bge_large_zh", description="Default embedding profile")
     profiles: Dict[str, EmbeddingProfile] = Field(
         default_factory=lambda: {
+            "st_bge_large_zh": EmbeddingProfile(
+                provider="sentence_transformers",
+                framework="sentence_transformers",
+                model="BAAI/bge-large-zh-v1.5",
+                dimension=1024,
+                options={"normalize_embeddings": True},
+            ),
             "ollama_nomic": EmbeddingProfile(
                 provider="ollama",
                 framework="ollama",

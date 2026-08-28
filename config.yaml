@@ -11,8 +11,15 @@ chunking:
     - medical
     - legal
 embeddings:
-  default_profile: ollama_nomic
+  default_profile: st_bge_large_zh
   profiles:
+    st_bge_large_zh:
+      provider: sentence_transformers
+      framework: sentence_transformers
+      model: BAAI/bge-large-zh-v1.5
+      dimension: 1024
+      options:
+        normalize_embeddings: true
     ollama_nomic:
       provider: ollama
       framework: ollama
@@ -53,9 +60,9 @@ log_level: INFO
 
 # Phase 3: cross-encoder reranking
 reranker:
-  model: cross-encoder/ms-marco-MiniLM-L-6-v2
-  batch_size: 32
-  score_threshold: 0.1
+  model: BAAI/bge-reranker-v2-m3
+  batch_size: 8
+  score_threshold: 0.0
   top_k: 5
 
 # Phase 3: context window (token counting for LLM prompt)
