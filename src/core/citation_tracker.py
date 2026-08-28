@@ -29,7 +29,12 @@ class CitationTracker:
         known = {str(d.get("id")): d for d in documents}
         by_index = self.build_index_lookup(documents)
         mapped: List[Dict[str, Any]] = []
-        for raw_id in self.extract_raw_ids(response_text):
+        seen: set[str] = set()
+        for match in _DOC_RE.finditer(response_text or ""):
+            raw_id = match.group(1).strip()
+            if not raw_id or raw_id in seen:
+                continue
+            seen.add(raw_id)
             doc = known.get(raw_id)
             resolved = doc is not None
             chunk_id = raw_id
@@ -46,7 +51,31 @@ class CitationTracker:
                     "chunk_id": chunk_id,
                     "resolved": resolved,
                     "title": metadata.get("title") or (doc or {}).get("title"),
+                    "filename": metadata.get("filename"),
+                    "page_number": metadata.get("page_number"),
+                    "section_title": metadata.get("section_title"),
                     "source": metadata.get("source") or metadata.get("file_type"),
+                    "evidence_anchor": metadata.get("evidence_anchor"),
+                    "claim_text": self._claim_for_marker(
+                        response_text,
+                        match.start(),
+                        match.end(),
+                    ),
+                    "text_preview": str((doc or {}).get("text", ""))[:240],
                 }
             )
         return mapped
+
+    @staticmethod
+    def _claim_for_marker(text: str, start: int, end: int) -> str:
+        boundaries = "。！？!?；;\n"
+        left = max((text.rfind(char, 0, start) for char in boundaries), default=-1)
+        right_candidates = [
+            position
+            for char in boundaries
+            if (position := text.find(char, end)) >= 0
+        ]
+        right = min(right_candidates) + 1 if right_candidates else len(text)
+        sentence = text[left + 1:right]
+        clean = _DOC_RE.sub("", sentence).strip()
+        return clean.rstrip("。！？!?；;").strip()

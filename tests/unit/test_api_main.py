@@ -133,6 +133,10 @@ def test_query_stream_endpoint(monkeypatch):
                 query="q",
                 provider="ollama",
                 model="qwen2.5:7b",
+                answer="grounded answer",
+                status="answered",
+                refusal_reason=None,
+                evidence=[{"id": "chunk1", "text": "body", "metadata": {}}],
                 citations=[],
                 processing_time_ms=12.0,
                 cached=False,
@@ -165,6 +169,9 @@ def test_query_stream_endpoint(monkeypatch):
     assert "token" in res.text
     assert '"processing_time_ms": 12.0' in res.text
     assert '"cached": false' in res.text
+    assert '"answer": "grounded answer"' in res.text
+    assert '"status": "answered"' in res.text
+    assert '"evidence": [{"id": "chunk1"' in res.text
     assert "metrics" in captured
     assert captured["metrics"].truthfulness_latency_ms == 5.0
 

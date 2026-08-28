@@ -29,7 +29,13 @@ class CitationModel(BaseModel):
     chunk_id: str
     resolved: bool
     title: Optional[str] = None
+    filename: Optional[str] = None
+    page_number: Optional[int] = None
+    section_title: Optional[str] = None
     source: Optional[str] = None
+    evidence_anchor: Optional[str] = None
+    claim_text: Optional[str] = None
+    text_preview: Optional[str] = None
     verification_score: float = 0.0
     verification: str = "unresolved"
 
@@ -64,6 +70,9 @@ class QueryResponseModel(BaseModel):
     retrieved: List[RetrievedChunkModel] = Field(default_factory=list)
     truthfulness: Optional[TruthfulnessModel] = None
     embedding_profile: Optional[str] = None
+    status: str = "answered"
+    refusal_reason: Optional[str] = None
+    evidence: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class HealthModel(BaseModel):

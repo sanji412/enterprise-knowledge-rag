@@ -31,6 +31,9 @@ def test_session_lifecycle_and_query(monkeypatch, tmp_path):
         truthfulness = None
         step_latencies = {}
         embedding_profile = "ollama_nomic"
+        status = "answered"
+        refusal_reason = None
+        evidence = []
 
     captured = {}
 

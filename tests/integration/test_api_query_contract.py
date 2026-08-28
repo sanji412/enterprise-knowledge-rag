@@ -16,6 +16,15 @@ def test_query_contract_fields(monkeypatch):
             provider="ollama",
             model="qwen2.5:7b",
             answer="BM25 ranks by lexical relevance [Doc chunkA]",
+            status="answered",
+            refusal_reason=None,
+            evidence=[
+                {
+                    "id": "chunkA",
+                    "text": "BM25 ranks by lexical relevance",
+                    "metadata": {"filename": "doc.txt"},
+                }
+            ],
             citations=[
                 {
                     "raw_id": "chunkA",
@@ -23,6 +32,12 @@ def test_query_contract_fields(monkeypatch):
                     "resolved": True,
                     "title": "doc.txt",
                     "source": ".txt",
+                    "filename": "doc.txt",
+                    "page_number": None,
+                    "section_title": "BM25",
+                    "evidence_anchor": "docs.bm25",
+                    "claim_text": "BM25 ranks by lexical relevance",
+                    "text_preview": "BM25 ranks by lexical relevance",
                     "verification_score": 0.82,
                     "verification": "supported",
                 }
@@ -39,3 +54,7 @@ def test_query_contract_fields(monkeypatch):
     assert payload["provider"] == "ollama"
     assert isinstance(payload["citations"], list)
     assert "processing_time_ms" in payload
+    assert payload["status"] == "answered"
+    assert payload["refusal_reason"] is None
+    assert payload["evidence"][0]["id"] == "chunkA"
+    assert payload["citations"][0]["filename"] == "doc.txt"

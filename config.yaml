@@ -108,3 +108,8 @@ api:
 evaluation:
   inline_enabled: true
   nli_model: cross-encoder/nli-deberta-v3-small
+
+grounding:
+  min_retrieval_confidence: 0.05
+  min_citation_score: 0.55
+  refusal_answer: 当前知识库中没有足够依据回答该问题

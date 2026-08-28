@@ -30,6 +30,9 @@ class GenerationResult:
     provider: str = "ollama"
     # Persisted on cache write so cache hits can return inline scores without re-running NLI.
     truthfulness: Optional["TruthfulnessResult"] = None
+    status: str = "answered"
+    refusal_reason: Optional[str] = None
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

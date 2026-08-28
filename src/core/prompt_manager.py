@@ -9,38 +9,28 @@ import yaml
 from src.core.context_optimizer import OptimizedContext
 from src.core.query_processor import QueryIntent
 
-FACTUAL_TEMPLATE = """You are a helpful assistant that answers questions based on provided documents.
-Always cite your sources and be precise in your answers.
+FACTUAL_TEMPLATE = """你是企业知识库问答助手。只能依据下方证据回答。
 
-Context Documents:
+证据：
 {context}
 
-Question: {query}
+用户问题：{query}
 
-Instructions:
-- Answer based only on the provided context
-- Include citations in [Doc chunk_id] format using the bracketed ids shown in the context (e.g. [Doc my-chunk-id])
-- If information is not in the context, say so clearly
-- Be concise but comprehensive
+每个关键事实后必须使用 [Doc chunk_id] 标注证据；证据不足时明确拒答。
 
-Answer:
+回答：
 """
 
-EXPLORATORY_TEMPLATE = """You are a knowledgeable assistant helping explore a topic using provided documents.
-Provide a thoughtful analysis while staying grounded in the sources.
+EXPLORATORY_TEMPLATE = """你是企业知识库问答助手。只能依据下方证据分析。
 
-Context Documents:
+证据：
 {context}
 
-Question: {query}
+用户问题：{query}
 
-Instructions:
-- Synthesize information from multiple sources when relevant
-- Highlight different perspectives if they exist
-- Use citations to support key points
-- Suggest follow-up questions if appropriate
+需要比较时分别引用每个结论，格式为 [Doc chunk_id]；证据不足时明确拒答。
 
-Analysis:
+回答：
 """
 
 DEFAULT_TEMPLATE = FACTUAL_TEMPLATE
@@ -59,7 +49,11 @@ class PromptManager:
     """Build user prompts from templates; optional YAML overrides under template_path."""
 
     def __init__(self, template_path: str | Path | None = None) -> None:
-        self.template_path = Path(template_path) if template_path else Path("config/prompts")
+        self.template_path = (
+            Path(template_path)
+            if template_path
+            else Path(__file__).resolve().parents[2] / "config" / "prompts"
+        )
         self.templates: Dict[str, str] = {
             "factual": FACTUAL_TEMPLATE,
             "exploratory": EXPLORATORY_TEMPLATE,
@@ -89,14 +83,8 @@ class PromptManager:
     def get_system_prompt(self, query_type: str) -> str:
         """Short system line for chat APIs that support a system role."""
         if query_type == "exploratory":
-            return (
-                "You are a careful analyst. Ground every claim in the provided context "
-                "and cite chunk ids in [Doc id] form."
-            )
-        return (
-            "You are a precise assistant. Answer only from the provided context and "
-            "cite chunk ids in [Doc id] form."
-        )
+            return "仅依据给定证据进行分析，并分别使用 [Doc id] 标注结论。"
+        return "仅依据给定证据准确回答，并使用 [Doc id] 标注关键事实。"
 
     def build_prompt(self, query: str, context: OptimizedContext, query_type: str = "factual") -> str:
         tpl = self.templates.get(query_type) or self.templates["default"]

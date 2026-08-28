@@ -21,3 +21,31 @@ def test_citation_verifier_scores_resolved_higher_than_unresolved():
     out = verifier.verify("python retrieval answer [Doc docA]", citations, docs)
     assert out[0]["verification"] in {"supported", "weak_support"}
     assert out[0]["verification_score"] > 0.0
+
+
+def test_citations_include_structured_source_and_claim_text():
+    docs = [
+        {
+            "id": "annual-leave",
+            "text": "工作满 12 个月可享 5 天年假",
+            "metadata": {
+                "filename": "员工手册.pdf",
+                "page_number": 2,
+                "section_title": "年假",
+                "file_type": ".pdf",
+                "evidence_anchor": "handbook.leave.annual",
+            },
+        }
+    ]
+    response = "员工工作满 12 个月可享 5 天年假 [Doc annual-leave]。"
+
+    mapped = CitationTracker().map_citations(response, docs)
+    verified = CitationVerifier().verify(response, mapped, docs)
+
+    assert mapped[0]["filename"] == "员工手册.pdf"
+    assert mapped[0]["page_number"] == 2
+    assert mapped[0]["section_title"] == "年假"
+    assert mapped[0]["evidence_anchor"] == "handbook.leave.annual"
+    assert mapped[0]["text_preview"] == "工作满 12 个月可享 5 天年假"
+    assert mapped[0]["claim_text"] == "员工工作满 12 个月可享 5 天年假"
+    assert verified[0]["verification"] == "supported"

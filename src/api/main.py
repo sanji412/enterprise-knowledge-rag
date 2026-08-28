@@ -552,6 +552,9 @@ def query(
         retrieved=retrieved,
         truthfulness=truthfulness_model,
         embedding_profile=out.embedding_profile,
+        status=out.status,
+        refusal_reason=out.refusal_reason,
+        evidence=out.evidence,
     )
 
 
@@ -621,6 +624,10 @@ def query_stream(
             )
             final_payload: dict[str, Any] = {
                 "type": "final",
+                "answer": final.answer,
+                "status": final.status,
+                "refusal_reason": final.refusal_reason,
+                "evidence": final.evidence,
                 "citations": final.citations,
                 "retrieved": _retrieved_chunks_json(final),
                 "truthfulness": final.truthfulness.to_dict() if final.truthfulness is not None else None,

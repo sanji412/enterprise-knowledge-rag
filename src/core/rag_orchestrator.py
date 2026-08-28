@@ -14,6 +14,7 @@ from src.core.citation_tracker import CitationTracker
 from src.core.citation_verifier import CitationVerifier
 from src.core.context_optimizer import ContextOptimizer
 from src.core.generator import GenerationResult, RAGGenerator, ValidationResult
+from src.core.grounding_policy import AnswerStatus, GroundingDecision, GroundingPolicy
 from src.core.hybrid_retriever import HybridRetriever, RetrievalMode
 from src.core.llm_provider import LLMProviderRouter
 from src.core.observability import get_observer
@@ -69,6 +70,9 @@ class QueryResponse:
     # Per-step latencies (retrieval, reranking, generation, etc.)
     step_latencies: Dict[str, float] = field(default_factory=dict)
     embedding_profile: str = ""
+    status: str = "answered"
+    refusal_reason: Optional[str] = None
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
 
 
 class RAGOrchestrator:
@@ -83,6 +87,10 @@ class RAGOrchestrator:
         self.response_processor = ResponseProcessor()
         self.citation_tracker = CitationTracker()
         self.citation_verifier = CitationVerifier()
+        self.grounding_policy = GroundingPolicy(
+            min_retrieval_confidence=cfg.grounding.min_retrieval_confidence,
+            min_citation_score=cfg.grounding.min_citation_score,
+        )
         self.cache = ResponseCache(ttl_seconds=int(cfg.generation.cache_ttl))
         self._truthfulness_scorer: Optional[TruthfulnessScorer] = None
         self.observer = get_observer()
@@ -184,6 +192,54 @@ class RAGOrchestrator:
             if len(out) >= top_k:
                 break
         return out
+
+    @staticmethod
+    def _evidence_from_results(
+        items: List[RetrievalResult],
+        limit: int = 5,
+    ) -> List[Dict[str, Any]]:
+        evidence: List[Dict[str, Any]] = []
+        for item in items[:limit]:
+            evidence.append(
+                {
+                    "id": item.id,
+                    "text": item.text,
+                    "metadata": dict(item.metadata),
+                    "confidence": item.confidence,
+                    "fusion_score": item.fusion_score,
+                    "sources": list(item.sources),
+                    "cross_encoder_score": item.cross_encoder_score,
+                    "rerank_position": item.rerank_position,
+                }
+            )
+        return evidence
+
+    def _refusal_response(
+        self,
+        req: QueryRequest,
+        selection: Any,
+        display_items: List[RetrievalResult],
+        profile_name: str,
+        step_latencies: Dict[str, float],
+        started_at: float,
+        decision: GroundingDecision,
+    ) -> QueryResponse:
+        step_latencies.setdefault("generation", 0.0)
+        step_latencies.setdefault("citation_verification", 0.0)
+        step_latencies.setdefault("truthfulness_scoring", 0.0)
+        return QueryResponse(
+            query=req.query_text,
+            provider=selection.provider,
+            model=selection.model,
+            answer=self.cfg.grounding.refusal_answer,
+            retrieved=display_items,
+            processing_time_ms=(time.perf_counter() - started_at) * 1000.0,
+            step_latencies=step_latencies,
+            embedding_profile=profile_name,
+            status=decision.status.value,
+            refusal_reason=decision.reason,
+            evidence=self._evidence_from_results(display_items),
+        )
 
     def _make_cache_key(self, req: QueryRequest, selection: Any) -> str:
         return cache_key(
@@ -364,6 +420,9 @@ class RAGOrchestrator:
             # Cache-hit responses do not have fresh per-step timings.
             step_latencies={"cache_hit": 1.0},
             embedding_profile=profile_name,
+            status=cached.status,
+            refusal_reason=cached.refusal_reason,
+            evidence=list(cached.evidence),
         )
 
     def _finalize_generation_pipeline(
@@ -378,7 +437,11 @@ class RAGOrchestrator:
         trace: Any,
         step_latencies: Dict[str, float],
         t0: float,
-    ) -> tuple[ValidationResult, Optional[TruthfulnessResult]]:
+    ) -> tuple[
+        ValidationResult,
+        Optional[TruthfulnessResult],
+        GroundingDecision,
+    ]:
         """Citation map+verify, validate, truthfulness, cache write — shared by run() and streaming finalize."""
         with self.observer.trace_step(trace, "citation_verification") as s:
             t_cite = time.perf_counter()
@@ -390,6 +453,16 @@ class RAGOrchestrator:
             step_latencies["citation_verification"] = (time.perf_counter() - t_cite) * 1000.0
             s["citations_count"] = len(gen_result.citations)
 
+        decision = self.grounding_policy.after_generation(
+            display_items,
+            gen_result.citations,
+        )
+        gen_result.status = decision.status.value
+        gen_result.refusal_reason = decision.reason
+        gen_result.evidence = self._evidence_from_results(display_items)
+        if decision.status is AnswerStatus.REFUSED:
+            gen_result.response_text = self.cfg.grounding.refusal_answer
+
         val = generator.validate_response(
             gen_result.response_text,
             gen_result.optimized_context
@@ -399,13 +472,14 @@ class RAGOrchestrator:
         truthfulness: Optional[TruthfulnessResult] = None
         with self.observer.trace_step(trace, "truthfulness_scoring") as s:
             t_truth = time.perf_counter()
-            truthfulness = self._score_truthfulness(
-                req,
-                gen_result.response_text,
-                gen_result.citations,
-                docs_for_gen,
-                optimized_context=gen_result.optimized_context,
-            )
+            if decision.status is AnswerStatus.ANSWERED:
+                truthfulness = self._score_truthfulness(
+                    req,
+                    gen_result.response_text,
+                    gen_result.citations,
+                    docs_for_gen,
+                    optimized_context=gen_result.optimized_context,
+                )
             step_latencies["truthfulness_scoring"] = (time.perf_counter() - t_truth) * 1000.0
             if truthfulness:
                 s["nli_faithfulness"] = truthfulness.nli_faithfulness
@@ -413,7 +487,7 @@ class RAGOrchestrator:
 
         gen_result.truthfulness = truthfulness
         self.cache.set(key, gen_result)
-        return val, truthfulness
+        return val, truthfulness, decision
 
     def run(self, req: QueryRequest) -> QueryResponse:
         t0 = time.perf_counter()
@@ -434,6 +508,7 @@ class RAGOrchestrator:
         with self.observer.trace_request("rag_query", query=req.query_text) as trace:
             docs_for_gen, display_items, profile_name = self._retrieve_docs_for_query(req, trace, step_latencies)
             qp = QueryProcessor()
+            grounding_decision = self.grounding_policy.before_generation(display_items)
 
             if not req.use_llm:
                 return QueryResponse(
@@ -444,6 +519,20 @@ class RAGOrchestrator:
                     processing_time_ms=(time.perf_counter() - t0) * 1000.0,
                     step_latencies=step_latencies,
                     embedding_profile=profile_name,
+                    status=grounding_decision.status.value,
+                    refusal_reason=grounding_decision.reason,
+                    evidence=self._evidence_from_results(display_items),
+                )
+
+            if grounding_decision.status is AnswerStatus.REFUSED:
+                return self._refusal_response(
+                    req,
+                    selection,
+                    display_items,
+                    profile_name,
+                    step_latencies,
+                    t0,
+                    grounding_decision,
                 )
 
             query_type = PromptManager.intent_to_query_type(qp.process_query(req.query_text).intent)
@@ -495,7 +584,7 @@ class RAGOrchestrator:
                 step_latencies["generation"] = (time.perf_counter() - t_gen) * 1000.0
                 s["latency_ms"] = step_latencies["generation"]
 
-            val, truthfulness = self._finalize_generation_pipeline(
+            val, truthfulness, grounding_decision = self._finalize_generation_pipeline(
                 req,
                 selection,
                 key,
@@ -522,14 +611,19 @@ class RAGOrchestrator:
             truthfulness=truthfulness,
             step_latencies=step_latencies,
             embedding_profile=profile_name,
+            status=grounding_decision.status.value,
+            refusal_reason=grounding_decision.reason,
+            evidence=gen_result.evidence,
         )
 
     def stream(self, req: QueryRequest) -> Iterator[str]:
         """Yields raw LLM tokens after retrieval. Does not run citations or truthfulness (use StreamingQuerySession)."""
         with self.observer.trace_request("rag_query", query=req.query_text) as trace:
             step_latencies: Dict[str, float] = {}
-            docs_for_gen, _, _ = self._retrieve_docs_for_query(req, trace, step_latencies)
+            docs_for_gen, display_items, _ = self._retrieve_docs_for_query(req, trace, step_latencies)
             if not req.use_llm:
+                return
+            if self.grounding_policy.before_generation(display_items).status is AnswerStatus.REFUSED:
                 return
             qp = QueryProcessor()
             query_type = PromptManager.intent_to_query_type(qp.process_query(req.query_text).intent)
@@ -577,6 +671,7 @@ class StreamingQuerySession:
         self._docs_for_gen: Union[List[RetrievalResult], List[RankedResult], None] = None
         self._display_items: Optional[List[RetrievalResult]] = None
         self._embedding_profile: str = orchestrator.cfg.embeddings.default_profile
+        self._grounding_decision: Optional[GroundingDecision] = None
 
     def __enter__(self) -> StreamingQuerySession:
         self._trace_cm = self._o.observer.trace_request("rag_query", query=self._req.query_text)
@@ -603,6 +698,11 @@ class StreamingQuerySession:
         self._docs_for_gen, self._display_items, self._embedding_profile = self._o._retrieve_docs_for_query(
             self._req, self._trace, self._step_latencies
         )
+        self._grounding_decision = self._o.grounding_policy.before_generation(
+            self._display_items
+        )
+        if self._grounding_decision.status is AnswerStatus.REFUSED:
+            return
         qp = QueryProcessor()
         query_type = PromptManager.intent_to_query_type(qp.process_query(self._req.query_text).intent)
         generator = RAGGenerator(
@@ -637,6 +737,9 @@ class StreamingQuerySession:
                 self._docs_for_gen, self._display_items, self._embedding_profile = self._o._retrieve_docs_for_query(
                     self._req, self._trace, self._step_latencies
                 )
+            self._grounding_decision = self._o.grounding_policy.before_generation(
+                self._display_items or []
+            )
             return QueryResponse(
                 query=self._req.query_text,
                 provider=self._selection.provider,
@@ -645,12 +748,29 @@ class StreamingQuerySession:
                 processing_time_ms=(time.perf_counter() - self._t0) * 1000.0,
                 step_latencies=self._step_latencies,
                 embedding_profile=self._embedding_profile,
+                status=self._grounding_decision.status.value,
+                refusal_reason=self._grounding_decision.reason,
+                evidence=self._o._evidence_from_results(self._display_items or []),
             )
         if self._cached is not None:
             return self._o._response_from_cache(
                 self._req, self._selection, self._cached, self._cached.latency_ms
             )
         assert self._docs_for_gen is not None and self._display_items is not None
+        if self._grounding_decision is None:
+            self._grounding_decision = self._o.grounding_policy.before_generation(
+                self._display_items
+            )
+        if self._grounding_decision.status is AnswerStatus.REFUSED:
+            return self._o._refusal_response(
+                self._req,
+                self._selection,
+                self._display_items,
+                self._embedding_profile,
+                self._step_latencies,
+                self._t0,
+                self._grounding_decision,
+            )
         full = self._o.response_processor.format_response("".join(self._buf))
         opt = self._o.context_optimizer.optimize_context(self._req.query_text, self._docs_for_gen)
         gen_result = GenerationResult(
@@ -669,7 +789,7 @@ class StreamingQuerySession:
             context_optimizer=self._o.context_optimizer,
             provider_router=self._o.provider_router,
         )
-        val, truthfulness = self._o._finalize_generation_pipeline(
+        val, truthfulness, self._grounding_decision = self._o._finalize_generation_pipeline(
             self._req,
             self._selection,
             self._key,
@@ -693,4 +813,7 @@ class StreamingQuerySession:
             truthfulness=truthfulness,
             step_latencies=self._step_latencies,
             embedding_profile=self._embedding_profile,
+            status=self._grounding_decision.status.value,
+            refusal_reason=self._grounding_decision.reason,
+            evidence=gen_result.evidence,
         )

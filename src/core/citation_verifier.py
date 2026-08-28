@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import re
 from typing import Any, Dict, List, Sequence
+
+from src.core.chinese_tokenizer import tokenize_search_text
 
 
 class CitationVerifier:
     @staticmethod
     def _tokenize(text: str) -> set[str]:
-        return {t for t in re.findall(r"[a-z0-9]+", (text or "").lower()) if len(t) > 2}
+        return set(tokenize_search_text(text or ""))
 
     def score_citation(
         self,
@@ -21,7 +22,8 @@ class CitationVerifier:
         doc = next((d for d in documents if str(d.get("id")) == chunk_id), None)
         if not doc:
             return 0.0
-        response_terms = self._tokenize(response_text)
+        claim_text = str(citation.get("claim_text") or response_text)
+        response_terms = self._tokenize(claim_text)
         doc_terms = self._tokenize(str(doc.get("text", "")))
         if not response_terms:
             return 0.0

@@ -187,6 +187,14 @@ class EvaluationSettings(BaseModel):
     )
 
 
+class GroundingSettings(BaseModel):
+    min_retrieval_confidence: float = Field(0.05, ge=0.0, le=1.0)
+    min_citation_score: float = Field(0.55, ge=0.0, le=1.0)
+    refusal_answer: str = Field(
+        "当前知识库中没有足够依据回答该问题",
+    )
+
+
 class ChunkingSettings(BaseModel):
     default_strategy: str = Field("tiktoken", description="Default chunking strategy")
     allowed_strategies: List[str] = Field(
@@ -320,6 +328,7 @@ class Config(BaseModel):
     chunking: ChunkingSettings = Field(default_factory=ChunkingSettings)
     embeddings: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
     vector_store: VectorStoreSettings = Field(default_factory=VectorStoreSettings)
+    grounding: GroundingSettings = Field(default_factory=GroundingSettings)
 
 
 def provider_api_key_env(provider: str) -> str | None:
