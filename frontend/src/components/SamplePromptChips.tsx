@@ -1,14 +1,14 @@
 const prompts = [
-  'What is retrieval augmented generation?',
-  'How does hybrid retrieval improve document search?',
-  'Explain BM25 vs vector search.',
-  'What makes citations useful in a RAG system?',
+  '员工工作满多久可以享受年假？',
+  'ATLAS-X2 出现 E03 错误时应该如何处理？',
+  '差旅报销的发票需要在多少天内提交？',
+  '极光终端的保修期是多久？',
 ]
 
 export function SamplePromptChips({ onSelect }: { onSelect: (prompt: string) => void }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-slate-700">Try a sample</p>
+      <p className="mb-2 text-sm font-medium text-slate-700">试试这些企业问题</p>
       <div className="flex flex-wrap gap-2">
         {prompts.map((prompt) => (
           <button

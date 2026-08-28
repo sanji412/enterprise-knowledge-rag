@@ -1,4 +1,4 @@
-import { Check, Copy } from 'lucide-react'
+import { Check, CircleCheck, Copy, ShieldAlert } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { QueryResponseModel } from '../api/generated'
@@ -67,6 +67,14 @@ export function AnswerPanel({
   renderMarkdown: boolean
 }) {
   const truthfulness = response?.truthfulness
+  const refused = response?.status === 'refused'
+  const stateLabel = refused ? '知识库暂无依据' : '已根据知识库回答'
+  const refusalReason =
+    response?.refusal_reason === 'no_relevant_evidence'
+      ? '未检索到达到可信阈值的证据'
+      : response?.refusal_reason === 'unverified_citations'
+        ? '生成内容的引用未通过校验'
+        : response?.refusal_reason
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -90,17 +98,30 @@ export function AnswerPanel({
     }
   }, [answer])
 
-  const emptyPlaceholder = isLoading ? 'Waiting for tokens...' : 'Ask a question to see a grounded answer.'
+  const emptyPlaceholder = isLoading ? '正在检索证据并生成回答…' : '提出问题后，这里会显示带依据的回答。'
   const showCopy = answer.trim().length > 0
 
   return (
-    <section className="app-card p-5">
+    <section className={`app-card overflow-hidden border ${refused ? 'border-amber-300' : 'border-emerald-200'}`}>
+      {response ? (
+        <div className={`flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3 ${refused ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-100 bg-emerald-50 text-emerald-900'}`}>
+          <span className="inline-flex items-center gap-2 text-sm font-semibold">
+            {refused ? <ShieldAlert className="h-4 w-4" aria-hidden="true" /> : <CircleCheck className="h-4 w-4" aria-hidden="true" />}
+            {stateLabel}
+          </span>
+          {refusalReason ? <span className="text-xs">{refusalReason}</span> : null}
+        </div>
+      ) : null}
+      <div className="p-5">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold text-slate-950">Answer</h2>
+        <div>
+          <p className="utility-label text-slate-500">GROUNDED RESPONSE</p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-950">回答结果</h2>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            aria-label={copied ? 'Copied answer to clipboard' : 'Copy answer to clipboard'}
+            aria-label={copied ? '答案已复制' : '复制答案'}
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40"
             disabled={!showCopy}
             onClick={() => void handleCopy()}
@@ -108,24 +129,19 @@ export function AnswerPanel({
             {copied ? (
               <>
                 <Check className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                Copied
+                已复制
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
-                Copy
+                复制答案
               </>
             )}
           </button>
-          {truthfulness ? (
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
-              Truthfulness {truthfulness.score.toFixed(2)}
-            </span>
-          ) : null}
         </div>
       </div>
       <div
-        className="min-h-28 rounded-xl bg-slate-50 p-4 text-left text-slate-800"
+        className={`min-h-28 rounded-xl p-4 text-left ${refused ? 'bg-amber-50 text-amber-950' : 'bg-slate-50 text-slate-800'}`}
         aria-live={isLoading ? 'polite' : undefined}
       >
         {!answer && !isLoading ? (
@@ -142,9 +158,21 @@ export function AnswerPanel({
         <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-600">
           <span>{response.provider} / {response.model}</span>
           <span>{Math.round(response.processing_time_ms)} ms</span>
-          {response.cached ? <span>Cached</span> : null}
+          {response.cached ? <span>缓存命中</span> : null}
         </div>
       ) : null}
+      {truthfulness ? (
+        <details className="technical-details mt-4">
+          <summary>评测信号</summary>
+          <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+            <div><span className="block text-xs text-slate-500">综合分</span><strong>{truthfulness.score.toFixed(2)}</strong></div>
+            <div><span className="block text-xs text-slate-500">NLI 支持度</span><strong>{truthfulness.nli_faithfulness.toFixed(2)}</strong></div>
+            <div><span className="block text-xs text-slate-500">引用依据度</span><strong>{truthfulness.citation_groundedness.toFixed(2)}</strong></div>
+          </div>
+          <p className="mt-3 text-xs text-slate-500">这些分数是离线/调试信号，不代表事实正确性的保证。</p>
+        </details>
+      ) : null}
+      </div>
     </section>
   )
 }

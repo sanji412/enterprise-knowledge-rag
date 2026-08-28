@@ -10,12 +10,12 @@ const MAX_FILE_BYTES = 3 * 1024 * 1024
 
 function resultMessage(result: UploadResult) {
   const messages: Record<string, string> = {
-    queued: 'Uploaded and indexed.',
-    skipped: 'Duplicate upload skipped.',
-    oversize: 'File exceeds the 3 MB limit.',
-    file_count_cap: 'Session file count cap reached.',
-    session_disk_cap: 'Session disk cap reached.',
-    type_mismatch: 'File contents do not match the extension.',
+    queued: '上传并建立索引成功。',
+    skipped: '检测到重复文件，已跳过。',
+    oversize: '文件超过 3 MB 限制。',
+    file_count_cap: '已达到当前会话的文件数量上限。',
+    session_disk_cap: '已达到当前会话的存储上限。',
+    type_mismatch: '文件内容与扩展名不一致。',
   }
   return messages[result.status] ?? messages[result.message] ?? result.message
 }
@@ -40,33 +40,37 @@ export function Uploader({
     queryFn: fetchRuntimeConfig,
     staleTime: Infinity,
   })
-  const chunkStrategy = chunkStrategyChoice ?? runtimeConfig?.chunking_default_strategy ?? 'tiktoken'
-  const embeddingProfile = embeddingProfileChoice ?? runtimeConfig?.embedding_default_profile ?? 'ollama_nomic'
+  const chunkStrategy = chunkStrategyChoice
+    ?? (runtimeConfig?.chunking_allowed_strategies.includes('zh_structure') ? 'zh_structure' : runtimeConfig?.chunking_default_strategy)
+    ?? 'zh_structure'
+  const embeddingProfile = embeddingProfileChoice
+    ?? (runtimeConfig?.embedding_profiles.st_bge_large_zh ? 'st_bge_large_zh' : runtimeConfig?.embedding_default_profile)
+    ?? 'st_bge_large_zh'
 
   const mutation = useMutation({
     mutationFn: (files: File[]) => uploadDocuments(sessionId, files, { chunkStrategy, embeddingProfile }),
     onSuccess: async (response) => {
       setResults(response.results)
-      setMessage('Upload finished.')
+      setMessage('文档上传与索引已完成。')
       await onUploaded()
     },
     onError: (error) => {
-      setMessage(error instanceof Error ? error.message : 'Upload failed.')
+      setMessage(error instanceof Error ? error.message : '上传失败，请检查文件或后端服务。')
     },
   })
 
   const validateFiles = (files: File[]) => {
     if (!summary) {
-      return 'Session is not ready yet.'
+      return '会话尚未准备完成。'
     }
     const maxFiles = summary?.max_files ?? 3
     const currentFiles = summary?.files.length ?? 0
     if (currentFiles + files.length > maxFiles) {
-      return `You can upload ${Math.max(0, maxFiles - currentFiles)} more file(s).`
+      return `当前会话还可上传 ${Math.max(0, maxFiles - currentFiles)} 个文件。`
     }
     const oversized = files.find((file) => file.size > MAX_FILE_BYTES)
     if (oversized) {
-      return `${oversized.name} is larger than ${formatBytes(MAX_FILE_BYTES)}.`
+      return `${oversized.name} 超过 ${formatBytes(MAX_FILE_BYTES)} 限制。`
     }
     return null
   }
@@ -80,12 +84,12 @@ export function Uploader({
       return
     }
     setPendingFiles(files)
-    setMessage(`${files.length} file(s) ready to upload.`)
+    setMessage(`已选择 ${files.length} 个文件，确认后开始索引。`)
   }
 
   const uploadPendingFiles = () => {
     if (!pendingFiles.length) {
-      setMessage('Choose files first.')
+      setMessage('请先选择文件。')
       return
     }
     const validationError = validateFiles(pendingFiles)
@@ -97,11 +101,11 @@ export function Uploader({
       onSuccess: async (response) => {
         setResults(response.results)
         setPendingFiles([])
-        setMessage('Upload finished.')
+        setMessage('文档上传与索引已完成。')
         await onUploaded()
       },
       onError: (error) => {
-        setMessage(error instanceof Error ? error.message : 'Upload failed.')
+        setMessage(error instanceof Error ? error.message : '上传失败，请检查文件或后端服务。')
       },
     })
   }
@@ -121,7 +125,7 @@ export function Uploader({
       {runtimeConfig ? (
         <div className="mb-3 grid gap-3 md:grid-cols-2">
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Step 1: Chunking strategy</span>
+            <span className="mb-1 block font-medium text-slate-700">中文切片策略</span>
             <select
               className="w-full rounded-lg border border-slate-300 bg-white p-2 text-slate-900"
               value={chunkStrategy}
@@ -135,7 +139,7 @@ export function Uploader({
             </select>
           </label>
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Step 1: Embedding profile</span>
+            <span className="mb-1 block font-medium text-slate-700">向量模型</span>
             <select
               className="w-full rounded-lg border border-slate-300 bg-white p-2 text-slate-900"
               value={embeddingProfile}
@@ -160,8 +164,8 @@ export function Uploader({
         }}
       >
         <Upload className="mx-auto mb-3 h-8 w-8 text-blue-600" aria-hidden="true" />
-        <p className="font-medium text-slate-900">Step 2: Choose files, then Step 3: click Upload</p>
-        <p className="mt-1 text-sm text-slate-600">PDF, DOCX, TXT, Markdown, or HTML. Upload starts only when you click Upload.</p>
+        <p className="font-medium text-slate-900">上传企业文档</p>
+        <p className="mt-1 text-sm text-slate-600">支持 PDF、DOCX、TXT、Markdown 和 HTML；确认后开始切片、向量化与索引。</p>
         <input
           ref={inputRef}
           type="file"
@@ -177,7 +181,7 @@ export function Uploader({
             disabled={mutation.isPending || !summary}
             onClick={() => inputRef.current?.click()}
           >
-            Step 2: Choose files
+            选择文件
           </button>
           <button
             type="button"
@@ -185,7 +189,7 @@ export function Uploader({
             disabled={!canUpload}
             onClick={uploadPendingFiles}
           >
-            {mutation.isPending ? 'Uploading...' : 'Step 3: Upload'}
+            {mutation.isPending ? '正在建立索引…' : '上传并建立索引'}
           </button>
           <button
             type="button"
@@ -193,7 +197,7 @@ export function Uploader({
             disabled={mutation.isPending || pendingFiles.length === 0}
             onClick={clearSelection}
           >
-            Clear
+            清除选择
           </button>
         </div>
       </div>

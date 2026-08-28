@@ -18,27 +18,27 @@ export function DocumentsTab({ onOpenUploadFaq }: { onOpenUploadFaq?: () => void
       <section className="app-card shrink-0 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-950">My documents</h2>
+            <h2 className="text-lg font-semibold text-slate-950">上传企业文档</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Up to 3 files, 3 MB each, 8 MB total. Sessions expire after 30 minutes of inactivity.
+              每次会话最多 3 个文件，单个不超过 3 MB，总计不超过 8 MB；闲置 30 分钟后自动过期。
             </p>
           </div>
           <button
             type="button"
             className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50"
             disabled={!sessionId || isMintingSession || bootstrapPaused}
-            title="Fresh ID for uploads in this browser. Replaces any current demo session (including uploads on the server)."
+            title="创建新会话并替换当前会话中的上传文件。"
             onClick={() => void clearSession()}
           >
             <Fingerprint className="h-4 w-4" aria-hidden="true" />
-            New session
+            新建会话
           </button>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <div>
             <div className="mb-2 flex justify-between text-sm">
-              <span>Disk used</span>
+              <span>已用空间</span>
               <span>{formatBytes(usedBytes)} / {formatBytes(maxBytes)}</span>
             </div>
             <Progress.Root className="h-2 overflow-hidden rounded-full bg-slate-100" value={bytePercent}>
@@ -47,7 +47,7 @@ export function DocumentsTab({ onOpenUploadFaq }: { onOpenUploadFaq?: () => void
           </div>
           <div>
             <div className="mb-2 flex justify-between text-sm">
-              <span>Files</span>
+              <span>文件数量</span>
               <span>{files.length} / {maxFiles}</span>
             </div>
             <Progress.Root className="h-2 overflow-hidden rounded-full bg-slate-100" value={filePercent}>
@@ -55,15 +55,15 @@ export function DocumentsTab({ onOpenUploadFaq }: { onOpenUploadFaq?: () => void
             </Progress.Root>
           </div>
         </div>
-        <p className="mt-4 text-sm text-slate-600">Session expires in {formatTtl(expiresAt)}.</p>
+        <p className="mt-4 text-sm text-slate-600">当前会话将在 {formatTtl(expiresAt)} 后过期。</p>
       </section>
 
       {sessionId ? (
         <section className="app-card shrink-0 p-5">
           <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
-            <span>Need help choosing chunking strategy or embedding profile?</span>
+            <span>不了解切片策略或向量模型？</span>
             <button type="button" className="font-semibold underline" onClick={() => onOpenUploadFaq?.()}>
-              Read Upload FAQ
+              查看上传说明
             </button>
           </div>
           <Uploader sessionId={sessionId} summary={summary} onUploaded={refreshSession} />
@@ -71,10 +71,10 @@ export function DocumentsTab({ onOpenUploadFaq }: { onOpenUploadFaq?: () => void
       ) : null}
 
       <section className="app-card flex min-h-[42vh] min-h-0 flex-1 flex-col p-5">
-        <h2 className="mb-3 shrink-0 text-lg font-semibold text-slate-950">Indexed files</h2>
+        <h2 className="mb-3 shrink-0 text-lg font-semibold text-slate-950">已建立索引的文件</h2>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {files.length === 0 ? (
-            <p className="text-sm text-slate-600">No uploaded documents yet.</p>
+            <p className="text-sm text-slate-600">还没有上传文档，请先在上方选择文件并建立索引。</p>
           ) : (
             <ul className="space-y-2">
               {files.map((file) => (

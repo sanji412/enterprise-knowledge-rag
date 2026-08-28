@@ -28,6 +28,6 @@ describe('Uploader', () => {
     )
     const input = document.querySelector('input[type="file"]') as HTMLInputElement
     await userEvent.upload(input, new File(['hello'], 'd.md', { type: 'text/markdown' }))
-    expect(screen.getByText(/upload 0 more file/i)).toBeInTheDocument()
+    expect(screen.getByText(/还可上传 0 个文件/)).toBeInTheDocument()
   })
 })

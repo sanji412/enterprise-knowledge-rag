@@ -1,15 +1,29 @@
 import { API_BASE_URL, ApiError, networkFailureError } from '../api/client'
-import type { CitationModel, QueryRequestModel, RetrievedChunkModel, TruthfulnessModel } from '../api/generated'
+import type {
+  CitationModel,
+  QueryRequestModel,
+  QueryResponseModel,
+  RetrievedChunkModel,
+  TruthfulnessModel,
+} from '../api/generated'
 
 export type StreamEvent =
   | { type: 'token'; text: string }
   | {
       type: 'final'
+      answer: string
+      status: string
+      refusal_reason?: string | null
+      evidence?: QueryResponseModel['evidence']
       citations: CitationModel[]
       retrieved?: RetrievedChunkModel[]
       truthfulness?: TruthfulnessModel | null
       provider: string
       model: string
+      processing_time_ms?: number
+      cached?: boolean
+      validation_issues?: string[]
+      embedding_profile?: string | null
     }
   | { type: 'error'; message: string }
 
@@ -26,6 +40,13 @@ function parseSseFrame(frame: string): StreamEvent[] {
     .map((line) => line.slice(5).trim())
     .filter((data) => data && data !== '[DONE]')
     .map((data) => JSON.parse(data) as StreamEvent)
+}
+
+export function resolveFinalAnswer(
+  draft: string,
+  event: Extract<StreamEvent, { type: 'final' }>,
+) {
+  return event.answer?.trim() ? event.answer : draft
 }
 
 async function parseError(response: Response) {
@@ -93,4 +114,4 @@ export async function streamQuery(request: QueryRequestModel, callbacks: StreamQ
   }
 }
 
-export const testInternals = { parseSseFrame }
+export const testInternals = { parseSseFrame, resolveFinalAnswer }

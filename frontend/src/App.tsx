@@ -11,12 +11,12 @@ import { useSession } from './session/SessionContext'
 import { formatTtl } from './lib/format'
 
 const NEW_SESSION_HINT =
-  'Fresh ID for uploads in this browser. Replaces any current demo session (including uploads on the server).'
+  '创建新的浏览器会话；当前会话中的上传文件将被替换。'
 
 function SessionErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
   const collapsedSummary =
     message.includes('DOC_PROFILE=demo') || message.includes('Demo sessions are disabled')
-      ? 'Demo sessions are disabled on this server.'
+      ? '当前服务器未启用演示会话。'
       : null
   return (
     <div className="mt-3 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -28,7 +28,7 @@ function SessionErrorBanner({ message, onRetry }: { message: string; onRetry: ()
               <>
                 <span className="font-semibold">{collapsedSummary}</span>
                 <details className="mt-1">
-                  <summary className="cursor-pointer font-semibold underline">Details</summary>
+                  <summary className="cursor-pointer font-semibold underline">查看技术详情</summary>
                   <p className="mt-1 max-h-32 overflow-y-auto whitespace-pre-wrap break-words">{message}</p>
                 </details>
               </>
@@ -39,7 +39,7 @@ function SessionErrorBanner({ message, onRetry }: { message: string; onRetry: ()
         </span>
       </div>
       <button type="button" className="shrink-0 font-semibold underline" onClick={() => void onRetry()}>
-        Retry session
+        重试会话
       </button>
     </div>
   )
@@ -66,36 +66,35 @@ function Shell() {
       return null
     }
     if (isMintingSession) {
-      return 'Starting session…'
+      return '正在创建会话…'
     }
     if (awaitsSessionEnvelope) {
-      return 'Loading session…'
+      return '正在加载会话…'
     }
     if (sessionId) {
-      return `Session …${sessionId.slice(-5)}`
+      return `会话 …${sessionId.slice(-5)}`
     }
-    return 'Starting session…'
+    return '正在创建会话…'
   })()
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-100 px-4 py-6 md:px-8">
+    <main className="app-shell flex min-h-screen flex-col px-4 py-6 md:px-8">
       <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-5">
         <header className="app-card shrink-0 p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">Doc Ingestion</p>
-              <h1 className="mt-1 text-3xl font-bold text-slate-950">Document Q&A Assistant</h1>
+              <p className="utility-label text-sky-700">ENTERPRISE RAG / 中文知识中枢</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">企业知识库可信问答</h1>
               <p className="mt-2 max-w-3xl text-slate-600">
-                Ask citation-aware questions against the global demo corpus, your private uploads, or both.
+                上传企业文档，检索可追溯证据，并获得经过引用校验的中文回答。
               </p>
             </div>
 
             {bootstrapPaused ? (
               <div className="flex max-w-md flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                <p className="font-medium text-slate-800">Not signed in to a demo session</p>
+                <p className="font-medium text-slate-800">尚未开启文档会话</p>
                 <p className="text-xs text-slate-600">
-                  Start a session to upload documents in this browser, or stay logged out to browse Overview and Query
-                  against the global corpus only.
+                  开启会话后可上传私有文档；也可以直接使用企业示例库进行问答。
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -104,7 +103,7 @@ function Shell() {
                     onClick={() => void startSession()}
                   >
                     <Fingerprint className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Start session
+                    开启会话
                   </button>
                   <button
                     type="button"
@@ -112,7 +111,7 @@ function Shell() {
                     onClick={() => setActiveTab('upload-faq')}
                   >
                     <CircleHelp className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Upload FAQ
+                    上传说明
                   </button>
                 </div>
               </div>
@@ -136,24 +135,24 @@ function Shell() {
                     onClick={() => void clearSession()}
                   >
                     <Fingerprint className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    {isLoading ? 'Working…' : 'New session'}
+                    {isLoading ? '处理中…' : '新建会话'}
                   </button>
                   <button
                     type="button"
                     className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-50"
                     disabled={isLoading}
-                    title="Clear demo session from this browser and pause automatic session creation."
+                    title="退出当前浏览器会话，并暂停自动创建会话。"
                     onClick={() => void logout()}
                   >
                     <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Logout
+                    退出会话
                   </button>
                   <button
                     type="button"
                     className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-blue-700 underline hover:text-blue-900"
                     onClick={() => setActiveTab('upload-faq')}
                   >
-                    Upload FAQ
+                    上传说明
                   </button>
                 </div>
               </div>
@@ -164,34 +163,34 @@ function Shell() {
         </header>
 
         <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col gap-5">
-          <Tabs.List className="app-card inline-flex shrink-0 flex-wrap gap-2 p-2" aria-label="Main sections">
+          <Tabs.List className="app-card inline-flex shrink-0 flex-wrap gap-2 p-2" aria-label="主要功能">
             <Tabs.Trigger
               value="overview"
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               <BookOpen className="h-4 w-4" aria-hidden="true" />
-              Overview
+              系统概览
             </Tabs.Trigger>
             <Tabs.Trigger
               value="query"
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               <Database className="h-4 w-4" aria-hidden="true" />
-              Query
+              可信问答
             </Tabs.Trigger>
             <Tabs.Trigger
               value="documents"
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               <FileText className="h-4 w-4" aria-hidden="true" />
-              My documents
+              企业文档
             </Tabs.Trigger>
             <Tabs.Trigger
               value="upload-faq"
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               <CircleHelp className="h-4 w-4" aria-hidden="true" />
-              Upload FAQ
+              上传说明
             </Tabs.Trigger>
           </Tabs.List>
 

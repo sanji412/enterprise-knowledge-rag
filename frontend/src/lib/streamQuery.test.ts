@@ -1,4 +1,4 @@
-import { testInternals } from './streamQuery'
+import { testInternals, type StreamEvent } from './streamQuery'
 
 describe('streamQuery parsing', () => {
   it('parses token and final events', () => {
@@ -17,5 +17,22 @@ describe('streamQuery parsing', () => {
         model: 'llama3',
       },
     ])
+  })
+
+  it('uses the server refusal answer instead of streamed draft text', () => {
+    const final = {
+      type: 'final',
+      status: 'refused',
+      answer: '当前知识库中没有足够依据回答该问题',
+      refusal_reason: 'no_relevant_evidence',
+      citations: [],
+      evidence: [],
+      provider: 'deepseek',
+      model: 'deepseek-v4-flash',
+    } as Extract<StreamEvent, { type: 'final' }>
+
+    expect(testInternals.resolveFinalAnswer('模型正在生成的草稿', final)).toBe(
+      '当前知识库中没有足够依据回答该问题',
+    )
   })
 })

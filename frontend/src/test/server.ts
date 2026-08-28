@@ -11,34 +11,24 @@ export const mockSession = {
 }
 
 const mockLlmConfig = {
-  default_provider: 'ollama',
+  default_provider: 'deepseek',
   default_model_by_provider: {
-    ollama: 'qwen2.5:7b',
-    openai: 'gpt-4o-mini',
-    anthropic: 'claude-sonnet-4-6',
-    gemini: 'gemini-2.5-flash',
+    deepseek: 'deepseek-v4-flash',
   },
   allowed_models_by_provider: {
-    ollama: ['qwen2.5:7b', 'deepseek-r1:8b'],
-    openai: ['gpt-4o-mini'],
-    anthropic: ['claude-sonnet-4-6'],
-    gemini: ['gemini-2.5-flash'],
+    deepseek: ['deepseek-v4-flash'],
   },
   provider_key_configured: {
-    ollama: true,
-    openai: true,
-    anthropic: true,
-    gemini: true,
+    deepseek: true,
   },
   demo_mode: true,
 }
 const mockRuntimeConfig = {
-  chunking_default_strategy: 'tiktoken',
-  chunking_allowed_strategies: ['tiktoken', 'spacy', 'nltk', 'medical', 'legal'],
-  embedding_default_profile: 'ollama_nomic',
+  chunking_default_strategy: 'zh_structure',
+  chunking_allowed_strategies: ['zh_structure', 'tiktoken'],
+  embedding_default_profile: 'st_bge_large_zh',
   embedding_profiles: {
-    ollama_nomic: { provider: 'ollama', framework: 'ollama', model: 'nomic-embed-text', dimension: 768, options: {} },
-    st_minilm: { provider: 'sentence_transformers', framework: 'sentence_transformers', model: 'all-MiniLM-L6-v2', dimension: 384, options: {} },
+    st_bge_large_zh: { provider: 'sentence_transformers', framework: 'sentence_transformers', model: 'BAAI/bge-large-zh-v1.5', dimension: 1024, options: {} },
   },
 }
 
@@ -61,8 +51,8 @@ export const handlers = [
   http.post('http://127.0.0.1:8000/query', () =>
     HttpResponse.json({
       query: 'What is in my file?',
-      provider: 'ollama',
-      model: 'llama3',
+      provider: 'deepseek',
+      model: 'deepseek-v4-flash',
       answer: 'The uploaded file says hello. [1]',
       processing_time_ms: 12,
       cached: false,
@@ -79,6 +69,9 @@ export const handlers = [
         },
       ],
       retrieved: [],
+      status: 'answered',
+      refusal_reason: null,
+      evidence: [],
       truthfulness: { nli_faithfulness: 1, citation_groundedness: 0.95, uncited_claims: 0, score: 0.97 },
     }),
   ),
@@ -90,7 +83,7 @@ export const handlers = [
         controller.enqueue(encoder.encode('data: {"type":"token","text":" world"}\n\n'))
         controller.enqueue(
           encoder.encode(
-            'data: {"type":"final","citations":[],"retrieved":[],"truthfulness":null,"provider":"ollama","model":"llama3"}\n\ndata: [DONE]\n\n',
+            'data: {"type":"final","answer":"Hello world","status":"answered","refusal_reason":null,"citations":[],"evidence":[],"retrieved":[],"truthfulness":null,"provider":"deepseek","model":"deepseek-v4-flash"}\n\ndata: [DONE]\n\n',
           ),
         )
         controller.close()

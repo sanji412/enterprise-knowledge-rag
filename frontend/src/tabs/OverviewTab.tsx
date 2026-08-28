@@ -1,138 +1,82 @@
+import { FileSearch, Network, ShieldCheck, Waypoints } from 'lucide-react'
+
+const stages = [
+  {
+    icon: FileSearch,
+    title: '中文文档解析',
+    text: '保留文件名、页码、章节和稳定 chunk ID，支持 PDF、DOCX、Markdown、TXT 与 HTML。',
+  },
+  {
+    icon: Network,
+    title: '混合检索',
+    text: 'Jieba BM25 负责关键词召回，BGE-large-zh 负责语义召回，再通过加权 RRF 合并。',
+  },
+  {
+    icon: Waypoints,
+    title: '中文重排',
+    text: 'Cross-Encoder 对候选证据重新打分，将最相关的切片送给 DeepSeek。',
+  },
+  {
+    icon: ShieldCheck,
+    title: '引用校验与拒答',
+    text: '关键事实必须绑定可验证引用；证据不足或引用不可信时，系统直接拒答。',
+  },
+]
+
 export function OverviewTab() {
   return (
     <div className="space-y-5">
-      <section className="app-card p-5">
-        <h2 className="text-lg font-semibold text-slate-950">Overview</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          Doc Ingestion answers questions using retrieved document chunks, optional citations in the answer,
-          and quality signals so you can judge how grounded a reply is. Use this page as a quick reference
-          for scopes, citations, truthfulness, and retrieval scores.
-        </p>
-      </section>
-
-      <section className="app-card p-5">
-        <h2 className="text-lg font-semibold text-slate-950">Knowledge scope</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          On the Query tab, choose where the system searches before the model answers. Uploads require an
-          active session with at least one file.
-        </p>
-        <dl className="mt-4 space-y-4 text-sm">
-          <div>
-            <dt className="font-semibold text-slate-900">Global sample corpus</dt>
-            <dd className="mt-1 text-slate-600">
-              Search the preloaded public demo documents only. Always available.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900">My uploads only</dt>
-            <dd className="mt-1 text-slate-600">
-              Search only files you uploaded in this browser session. Enabled after you upload at least one
-              document.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-slate-900">Both</dt>
-            <dd className="mt-1 text-slate-600">
-              Combine the global demo corpus with your session uploads so answers can draw from either
-              source.
-            </dd>
-          </div>
-        </dl>
-        <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
-          Session uploads are private to your session, expire after inactivity, and are not merged into the
-          shared global corpus.
-        </p>
-      </section>
-
-      <section className="app-card p-5">
-        <h2 className="text-lg font-semibold text-slate-950">Citations</h2>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600">
-          <li>
-            The model is steered to ground answers in retrieved text and to mark supporting passages with
-            citation markers (for example references to documents or chunks).
-          </li>
-          <li>
-            In the Citations panel, each entry may show a <span className="font-medium text-slate-800">global</span>{' '}
-            or <span className="font-medium text-slate-800">yours</span> badge so you can see whether evidence
-            came from the demo corpus or your uploads.
-          </li>
-          <li>
-            <span className="font-medium text-slate-800">Verification</span> summarizes how well the cited
-            chunk supports the span that cited it. The <span className="font-medium text-slate-800">score</span>{' '}
-            (0–1) is a verification confidence for that citation; it feeds into the truthfulness score
-            below.
-          </li>
-        </ul>
-      </section>
-
-      <section className="app-card p-5">
-        <h2 className="text-lg font-semibold text-slate-950">Truthfulness</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          When present, the <span className="font-medium text-slate-800">Truthfulness</span> value next to the
-          answer is a single number from <strong>0</strong> to <strong>1</strong>. It blends two signals:
-        </p>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600">
-          <li>
-            <span className="font-medium text-slate-800">NLI faithfulness</span> — for substantive sentences
-            in the answer, the share that an entailment model judges as supported by at least one retrieved
-            chunk (high entailment probability).
-          </li>
-          <li>
-            <span className="font-medium text-slate-800">Citation groundedness</span> — the average citation{' '}
-            <span className="font-medium text-slate-800">verification_score</span> across returned citations.
-          </li>
-        </ul>
-        <p className="mt-3 text-sm text-slate-600">
-          The headline score is approximately <strong>60%</strong> NLI faithfulness plus{' '}
-          <strong>40%</strong> citation groundedness.
-        </p>
-        <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200">
-          <table className="w-full min-w-[280px] border-collapse text-left text-sm">
-            <caption className="sr-only">Truthfulness score bands</caption>
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-3 py-2 font-semibold text-slate-900">Range</th>
-                <th className="px-3 py-2 font-semibold text-slate-900">How to read it</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-600">
-              <tr className="border-b border-slate-100">
-                <td className="px-3 py-2 font-medium text-slate-800">≥ 0.80</td>
-                <td className="px-3 py-2">Strong grounding: most claims align with sources and citations verify well.</td>
-              </tr>
-              <tr className="border-b border-slate-100">
-                <td className="px-3 py-2 font-medium text-slate-800">0.50 – 0.79</td>
-                <td className="px-3 py-2">Mixed: treat as helpful but verify important facts in the cited text.</td>
-              </tr>
-              <tr>
-                <td className="px-3 py-2 font-medium text-slate-800">&lt; 0.50</td>
-                <td className="px-3 py-2">
-                  Weak: the answer may paraphrase loosely, omit citations, or go beyond the retrieved evidence.
-                  Read the retrieved chunks and citations carefully.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <section className="app-card overflow-hidden">
+        <div className="overview-hero p-6 md:p-8">
+          <p className="utility-label text-sky-200">ENTERPRISE KNOWLEDGE / TRACEABLE BY DESIGN</p>
+          <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-white md:text-4xl">
+            企业知识库可信问答
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
+            从中文文档进入索引，到混合检索、重排、生成、引用验证，每一步都保留可检查的证据。系统不知道时，会明确说不知道。
+          </p>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
-          Truthfulness can be unavailable if scoring is disabled or errors occur; that does not imply the
-          answer is ungrounded.
-        </p>
       </section>
 
-      <section className="app-card p-5">
-        <h2 className="text-lg font-semibold text-slate-950">Retrieved chunk scores</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          Under <span className="font-medium text-slate-800">Retrieved chunks</span>, each line shows a{' '}
-          <span className="font-medium text-slate-800">score</span> from hybrid search (BM25 plus dense
-          vectors, fused with reciprocal rank fusion). These numbers are <strong>not</strong> on the same
-          0–1 scale as truthfulness or citation verification.
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          Typical top hits often appear in roughly the <strong>0.01–0.03</strong> range depending on settings.
-          Compare scores <strong>relative to other chunks in the same answer</strong> (ranking), not to a fixed
-          threshold like 0.8.
-        </p>
+      <section className="grid gap-4 md:grid-cols-2">
+        {stages.map((stage, index) => {
+          const Icon = stage.icon
+          return (
+            <article key={stage.title} className="app-card p-5">
+              <div className="flex items-start gap-4">
+                <span className="stage-icon"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                <div>
+                  <p className="font-mono text-[11px] text-sky-700">PIPELINE {String(index + 1).padStart(2, '0')}</p>
+                  <h3 className="mt-1 font-semibold text-slate-950">{stage.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{stage.text}</p>
+                </div>
+              </div>
+            </article>
+          )
+        })}
+      </section>
+
+      <section className="app-card p-5 md:p-6">
+        <div className="grid gap-6 md:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="utility-label text-slate-500">HOW TO READ THE RESULT</p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-950">如何判断一条回答是否可信</h2>
+          </div>
+          <dl className="grid gap-4 text-sm sm:grid-cols-3">
+            <div className="border-l-2 border-emerald-500 pl-4">
+              <dt className="font-semibold text-slate-900">回答状态</dt>
+              <dd className="mt-1 leading-relaxed text-slate-600">绿色表示通过依据校验，琥珀色表示拒答及具体原因。</dd>
+            </div>
+            <div className="border-l-2 border-sky-500 pl-4">
+              <dt className="font-semibold text-slate-900">答案依据</dt>
+              <dd className="mt-1 leading-relaxed text-slate-600">点击引用查看文件、页码、章节和支持该结论的原文。</dd>
+            </div>
+            <div className="border-l-2 border-slate-400 pl-4">
+              <dt className="font-semibold text-slate-900">检索证据</dt>
+              <dd className="mt-1 leading-relaxed text-slate-600">展开技术细节，检查 RRF 分数、重排分数和候选顺序。</dd>
+            </div>
+          </dl>
+        </div>
       </section>
     </div>
   )
