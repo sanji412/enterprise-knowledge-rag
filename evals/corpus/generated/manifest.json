@@ -1,0 +1,33 @@
+{
+  "documents": [
+    {
+      "extracted_text_characters": 747,
+      "extracted_text_sha256": "ef00950568faf5057d64399f409a63ecc6bb5da9c056e89b9de614e3190b8e99",
+      "format": "pdf",
+      "output_path": "evals/corpus/generated/employee_handbook.pdf",
+      "source_normalized_text_sha256": "862bd35c179d069099e9a02c281ba94db84c57d1801343c988c8901fd801d95a",
+      "source_path": "evals/corpus/source/employee_handbook.md",
+      "source_sha256": "5967a324db5294725f7677d0fb9db9ac3f8278f066018256bab68a0da7f98f05"
+    },
+    {
+      "extracted_text_characters": 815,
+      "extracted_text_sha256": "0eee1ba784531307eb6b687380b9572d62eb25026dcaf5ed47c240872f4fdf7f",
+      "format": "docx",
+      "output_path": "evals/corpus/generated/product_manual.docx",
+      "source_normalized_text_sha256": "f2f94f4ae4c5ab79998654022bfbfa1f2549bc512749f62e9c754f4de7f58a3c",
+      "source_path": "evals/corpus/source/product_manual.md",
+      "source_sha256": "c4d06d357fbd1a8d2c4781bc55c538e410e53da1a972caf5d7af0e118d001085"
+    },
+    {
+      "extracted_text_characters": 434,
+      "extracted_text_sha256": "11807c6c95c961814bb66a528b6eb0a2c329465c5e6fadea66887febf40caca3",
+      "format": "markdown",
+      "output_path": "evals/corpus/generated/after_sales_faq.md",
+      "source_normalized_text_sha256": "11807c6c95c961814bb66a528b6eb0a2c329465c5e6fadea66887febf40caca3",
+      "source_path": "evals/corpus/source/after_sales_faq.md",
+      "source_sha256": "12eb2723492ef93e76a4a9643349789491f9e6fd9aa3a4f64f5bfe1d102f3013"
+    }
+  ],
+  "normalization": "collapse-whitespace-v1",
+  "schema_version": 1
+}

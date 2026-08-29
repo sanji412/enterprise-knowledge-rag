@@ -11,7 +11,7 @@ import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Protocol
 
-import PyPDF2
+import pypdf as PyPDF2
 import tiktoken
 from bs4 import BeautifulSoup
 from docx import Document
@@ -245,10 +245,31 @@ class DocumentProcessor:
             for page_number, page in enumerate(reader.pages, start=1):
                 text = page.extract_text() or ''
                 if text.strip():
+                    lines = text.splitlines()
+                    section_title: str | None = None
+                    evidence_anchor: str | None = None
+                    for index, line in enumerate(lines):
+                        clean_title, anchor = parse_heading_anchor(line)
+                        if anchor is None:
+                            continue
+                        evidence_anchor = anchor
+                        if clean_title:
+                            section_title = clean_title
+                            del lines[index]
+                        else:
+                            del lines[index]
+                            for previous in range(index - 1, -1, -1):
+                                if lines[previous].strip():
+                                    section_title = lines[previous].strip()
+                                    del lines[previous]
+                                    break
+                        break
                     units.append(
                         SourceUnit(
-                            text=text,
+                            text='\n'.join(lines).strip(),
                             page_number=page_number,
+                            section_title=section_title,
+                            evidence_anchor=evidence_anchor,
                         )
                     )
             return units

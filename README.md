@@ -143,7 +143,7 @@ In hosted demo mode (`DOC_PROFILE=demo`), Streamlit executes queries in-process 
 ## Tech Stack Snapshot
 
 - **App and API:** Streamlit, FastAPI, Pydantic, Uvicorn
-- **Document processing:** PyPDF2, python-docx, BeautifulSoup, markdown parsing, token-aware chunking
+- **Document processing:** pypdf, python-docx, BeautifulSoup, markdown parsing, token-aware chunking
 - **Retrieval:** BM25, Chroma, Qdrant, sentence-transformers, Ollama embeddings
 - **Ranking:** weighted RRF fusion, `cross-encoder/ms-marco-MiniLM-L-6-v2`
 - **Generation:** Ollama, OpenAI, Anthropic, Gemini
