@@ -1,11 +1,23 @@
-# Full stack (React + FastAPI) in one container on :8000. Streamlit is not part of this stack;
+# Full stack (React + FastAPI) on host :8100 by default. Streamlit is not part of this stack;
 # run it locally only if needed: PYTHONPATH=. streamlit run src/web/streamlit_app.py
+name: enterprise-rag
+
 services:
   api:
     build:
       context: ..
       dockerfile: Dockerfile
-    container_name: doc_ingestion_api
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:20-bookworm-slim}
+        PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.11-slim}
+        DEBIAN_MIRROR: ${DEBIAN_MIRROR:-http://deb.debian.org/debian}
+        DEBIAN_SECURITY_MIRROR: ${DEBIAN_SECURITY_MIRROR:-http://deb.debian.org/debian-security}
+        HF_ENDPOINT: ${HF_ENDPOINT:-https://huggingface.co}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PYTORCH_INDEX_URL: ${PYTORCH_INDEX_URL:-https://download.pytorch.org/whl/cpu}
+        PYTORCH_FIND_LINKS: ${PYTORCH_FIND_LINKS:-}
+        TORCH_VERSION: ${TORCH_VERSION:-2.7.1}
+        TORCHVISION_VERSION: ${TORCHVISION_VERSION:-0.22.1}
     environment:
       - ENV=dev
       # React demo session + uploads (override for hardened deploys).
@@ -18,39 +30,62 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - REDIS_URL=redis://redis:6379/0
+      - QDRANT_URL=http://qdrant:6333
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - HF_HOME=/app/.cache/huggingface
+      - HF_ENDPOINT=${HF_ENDPOINT:-https://huggingface.co}
       - TRANSFORMERS_CACHE=/app/.cache/huggingface/transformers
-      - SENTENCE_TRANSFORMERS_HOME=/app/.cache/huggingface/sentence_transformers
-      - HF_HUB_OFFLINE=${HF_HUB_OFFLINE:-0}
-      - TRANSFORMERS_OFFLINE=${TRANSFORMERS_OFFLINE:-0}
+      - SENTENCE_TRANSFORMERS_HOME=/app/.cache/huggingface/hub
+      - HF_HUB_OFFLINE=${HF_HUB_OFFLINE:-1}
+      - TRANSFORMERS_OFFLINE=${TRANSFORMERS_OFFLINE:-1}
       - PORT=8000
     volumes:
       - ../data:/app/data
       - ../config.yaml:/app/config.yaml
       - hf_cache:/app/.cache/huggingface
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8100}:8000"
     depends_on:
-      - qdrant
-      - redis
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
 
   redis:
     image: redis:7-alpine
-    container_name: doc_ingestion_redis
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-16379}:6379"
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
 
   qdrant:
-    image: qdrant/qdrant:latest
-    container_name: doc_ingestion_qdrant
+    image: qdrant/qdrant:v1.16
     ports:
-      - "6333:6333"
+      - "${QDRANT_HOST_PORT:-16333}:6333"
     volumes:
       - qdrant_data:/qdrant/storage
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333;
+          printf "GET /healthz HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3;
+          grep -q "200 OK" <&3'
+      interval: 5s
+      timeout: 3s
+      retries: 12
 
 volumes:
   qdrant_data:

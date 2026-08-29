@@ -78,4 +78,17 @@ class CitationTracker:
         right = min(right_candidates) + 1 if right_candidates else len(text)
         sentence = text[left + 1:right]
         clean = _DOC_RE.sub("", sentence).strip()
-        return clean.rstrip("。！？!?；;").strip()
+        clean = clean.rstrip("。！？!?；;").strip()
+        if clean:
+            return clean
+
+        # Models often put a citation on the line immediately after the claim.
+        # In that layout the marker's own sentence is empty, so associate it with
+        # the nearest preceding non-empty sentence instead.
+        prefix = text[:start].rstrip().rstrip(boundaries).rstrip()
+        previous_left = max(
+            (prefix.rfind(char) for char in boundaries),
+            default=-1,
+        )
+        previous_sentence = prefix[previous_left + 1:]
+        return _DOC_RE.sub("", previous_sentence).strip().rstrip("。！？!?；;").strip()

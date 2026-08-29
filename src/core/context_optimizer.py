@@ -41,7 +41,11 @@ def _unwrap_chunk(
 class ContextOptimizer:
     """Pack retrieved chunks into a prompt-sized context using a HF tokenizer."""
 
-    def __init__(self, max_context_tokens: int = 4000, tokenizer_name: str = "gpt2") -> None:
+    def __init__(
+        self,
+        max_context_tokens: int = 4000,
+        tokenizer_name: str = "BAAI/bge-large-zh-v1.5",
+    ) -> None:
         self.max_context_tokens = max_context_tokens
         self.tokenizer_name = tokenizer_name
         self._tokenizer = None

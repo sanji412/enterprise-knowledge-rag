@@ -1,6 +1,7 @@
 """
 YAML-based configuration with environment variable overrides.
 """
+
 from __future__ import annotations
 
 import os
@@ -94,7 +95,10 @@ class RerankerSettings(BaseModel):
 
 class ContextSettings(BaseModel):
     max_tokens: int = Field(4000, ge=256, description="Max context tokens for the LLM prompt body")
-    tokenizer: str = Field("gpt2", description="HF tokenizer id used only for counting")
+    tokenizer: str = Field(
+        "BAAI/bge-large-zh-v1.5",
+        description="HF tokenizer id used only for counting",
+    )
 
 
 class GenerationSettings(BaseModel):
@@ -348,7 +352,7 @@ def load_config(config_path: str = "config.yaml", env: str | None = None) -> Con
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         config_data = yaml.safe_load(f) or {}
 
     # Merge environment-specific overrides (e.g. config.dev.yaml)
@@ -356,7 +360,7 @@ def load_config(config_path: str = "config.yaml", env: str | None = None) -> Con
     base, ext = os.path.splitext(config_path)
     env_config_path = f"{base}.{resolved_env}{ext}"
     if os.path.exists(env_config_path):
-        with open(env_config_path, 'r') as f:
+        with open(env_config_path, "r") as f:
             env_overrides = yaml.safe_load(f) or {}
         config_data.update(env_overrides)
 
@@ -372,6 +376,14 @@ def load_config(config_path: str = "config.yaml", env: str | None = None) -> Con
         cfg = Config(**config_data)
     except ValidationError as e:
         raise ValueError(f"Invalid configuration: {e}")
+
+    # Container service discovery must override host-oriented YAML values.
+    qdrant_url = os.getenv("QDRANT_URL", "").strip()
+    if qdrant_url:
+        cfg = cfg.model_copy(update={"vector_store": cfg.vector_store.model_copy(update={"qdrant_url": qdrant_url})})
+    redis_url = os.getenv("REDIS_URL", "").strip()
+    if redis_url:
+        cfg = cfg.model_copy(update={"api": cfg.api.model_copy(update={"redis_url": redis_url})})
     if not doc_ollama_runtime_enabled():
         cfg = _strip_ollama_llm_settings(cfg)
     # On hosted environments without local Ollama daemon, prefer a non-Ollama

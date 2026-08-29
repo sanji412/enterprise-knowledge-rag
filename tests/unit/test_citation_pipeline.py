@@ -49,3 +49,20 @@ def test_citations_include_structured_source_and_claim_text():
     assert mapped[0]["text_preview"] == "工作满 12 个月可享 5 天年假"
     assert mapped[0]["claim_text"] == "员工工作满 12 个月可享 5 天年假"
     assert verified[0]["verification"] == "supported"
+
+
+def test_citation_on_own_line_uses_previous_sentence_as_claim():
+    docs = [
+        {
+            "id": "atlas-e03",
+            "text": "设备显示 E03 时，先断电 10 秒后重新启动；如果仍然异常，再长按复位键 8 秒。",
+            "metadata": {},
+        }
+    ]
+    response = "如果重启后仍然异常，需要长按复位键 8 秒。\n[Doc atlas-e03]"
+
+    mapped = CitationTracker().map_citations(response, docs)
+    verified = CitationVerifier().verify(response, mapped, docs)
+
+    assert mapped[0]["claim_text"] == "如果重启后仍然异常，需要长按复位键 8 秒"
+    assert verified[0]["verification"] == "supported"

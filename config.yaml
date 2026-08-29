@@ -74,7 +74,7 @@ reranker:
 # Phase 3: context window (token counting for LLM prompt)
 context:
   max_tokens: 4000
-  tokenizer: gpt2
+  tokenizer: BAAI/bge-large-zh-v1.5
 
 # Phase 3: RAG generation (Ollama)
 generation:

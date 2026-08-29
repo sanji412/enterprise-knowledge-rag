@@ -21,6 +21,8 @@ docker/.env
 
 # Generated indexes (rebuild with ingest)
 data/embeddings/
+docker/model-cache/*
+!docker/model-cache/.gitkeep
 data/documents/
 
 # Eval reports (generated at runtime)

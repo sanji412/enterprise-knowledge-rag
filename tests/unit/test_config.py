@@ -1,5 +1,6 @@
 import os
 import tempfile
+from pathlib import Path
 
 import pytest
 import yaml
@@ -19,7 +20,14 @@ class TestConfigDefaults:
         assert cfg.chunk_size == 600
         assert cfg.overlap == 100
         assert cfg.chunk_tokenizer == "gpt2"
+        assert cfg.context.tokenizer == "BAAI/bge-large-zh-v1.5"
         assert cfg.log_level == "INFO"
+
+    def test_project_config_uses_image_cached_context_tokenizer(self):
+        project_config = Path(__file__).resolve().parents[2] / "config.yaml"
+        cfg = load_config(str(project_config))
+
+        assert cfg.context.tokenizer == "BAAI/bge-large-zh-v1.5"
 
     def test_custom_values(self):
         cfg = Config(chunk_size=500, overlap=50)
@@ -79,6 +87,25 @@ class TestLoadConfig:
         finally:
             os.unlink(path)
 
+    def test_nested_service_url_env_overrides_yaml(self, monkeypatch):
+        path = _write_config(
+            {
+                "vector_store": {
+                    "backend": "qdrant",
+                    "qdrant_url": "http://localhost:16333",
+                },
+                "api": {"redis_url": "redis://localhost:16379/0"},
+            }
+        )
+        monkeypatch.setenv("QDRANT_URL", "http://qdrant:6333")
+        monkeypatch.setenv("REDIS_URL", "redis://redis:6379/0")
+        try:
+            cfg = load_config(path)
+            assert cfg.vector_store.qdrant_url == "http://qdrant:6333"
+            assert cfg.api.redis_url == "redis://redis:6379/0"
+        finally:
+            os.unlink(path)
+
     def test_env_specific_config_merged(self):
         base_path = _write_config({"chunk_size": 100, "log_level": "INFO"})
         # write a .test.yaml override next to the base config
@@ -88,7 +115,7 @@ class TestLoadConfig:
             with open(env_path, "w") as f:
                 yaml.dump({"log_level": "DEBUG"}, f)
             cfg = load_config(base_path, env="test")
-            assert cfg.chunk_size == 100   # from base
+            assert cfg.chunk_size == 100  # from base
             assert cfg.log_level == "DEBUG"  # from env override
         finally:
             os.unlink(base_path)
