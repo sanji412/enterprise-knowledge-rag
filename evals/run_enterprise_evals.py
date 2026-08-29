@@ -18,7 +18,7 @@ from src.evaluation.enterprise_metrics import (
     reciprocal_rank_at_k,
     refusal_correct,
 )
-from src.utils.config import load_config
+from src.utils.config import Config, load_config
 
 from evals.enterprise_schema import EnterpriseCase, load_enterprise_cases
 
@@ -35,6 +35,13 @@ SUMMARY_KEYS = (
     "end_to_end_latency_p95_ms",
     "execution_success_rate",
 )
+
+
+def load_benchmark_config(config_path: str | Path = "config.yaml") -> Config:
+    """Load production retrieval settings without an unmeasured NLI side model."""
+    cfg = load_config(str(config_path))
+    evaluation = cfg.evaluation.model_copy(update={"inline_enabled": False})
+    return cfg.model_copy(update={"evaluation": evaluation})
 
 
 @dataclass(frozen=True)
@@ -323,7 +330,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     cases = load_enterprise_cases(args.dataset)
-    orchestrator = RAGOrchestrator(load_config("config.yaml"))
+    orchestrator = RAGOrchestrator(load_benchmark_config("config.yaml"))
     report = evaluate_cases(
         cases,
         orchestrator,

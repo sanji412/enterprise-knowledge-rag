@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 
 from src.core.rag_orchestrator import RAGOrchestrator
-from src.utils.config import load_config
 
 from evals.enterprise_schema import EnterpriseCase, load_enterprise_cases
 from evals.run_enterprise_evals import (
@@ -19,6 +18,7 @@ from evals.run_enterprise_evals import (
     _markdown_table,
     _report_paths,
     evaluate_cases,
+    load_benchmark_config,
 )
 
 EXPERIMENTS = {
@@ -145,7 +145,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     cases = load_enterprise_cases(args.dataset)
-    cfg = load_config("config.yaml")
+    cfg = load_benchmark_config("config.yaml")
     report = run_ablation(
         cases,
         orchestrator_factory=lambda: RAGOrchestrator(cfg),

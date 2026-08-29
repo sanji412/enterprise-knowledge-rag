@@ -8,6 +8,7 @@ from evals.run_ablation import EXPERIMENTS, run_ablation, write_ablation_report
 from evals.run_enterprise_evals import (
     EvaluationConfig,
     evaluate_cases,
+    load_benchmark_config,
     percentile,
     write_report,
 )
@@ -122,3 +123,12 @@ def test_ablation_runs_all_four_named_experiments_and_sanitizes_output(tmp_path:
     ]
     assert secret not in json_path.read_text(encoding="utf-8")
     assert secret not in markdown_path.read_text(encoding="utf-8")
+
+
+def test_benchmark_config_disables_unmeasured_inline_nli(tmp_path: Path):
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text("evaluation:\n  inline_enabled: true\n", encoding="utf-8")
+
+    cfg = load_benchmark_config(config_path)
+
+    assert cfg.evaluation.inline_enabled is False
