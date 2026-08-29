@@ -1,31 +1,32 @@
 import type { LlmConfigModel, QueryRequestModel, QueryResponseModel, RuntimeConfigModel } from './generated'
 
-function resolveApiBaseUrl(): string {
-  const raw = import.meta.env.VITE_API_BASE_URL
+export function resolveApiBaseUrlForRuntime(
+  raw: string | undefined,
+  isProd: boolean,
+  isVitest: boolean,
+): string {
   if (typeof raw === 'string' && raw.trim() !== '') {
     return raw.trim().replace(/\/$/, '')
   }
-  if (!import.meta.env.PROD) {
+  if (!isProd) {
     // Vitest + MSW use absolute handlers on http://127.0.0.1:8000.
-    if (import.meta.env.VITEST) {
+    if (isVitest) {
       return 'http://127.0.0.1:8000'
     }
     // npm run dev: empty base → same-origin; vite.config.ts proxies to FastAPI.
     return ''
   }
-  // Production bundle: same-origin when UI is served by FastAPI (typical Docker) on :8000.
-  if (typeof window !== 'undefined') {
-    const port = window.location.port
-    const sameOriginAsApi =
-      port === '8000' || port === '' || port === '80' || port === '443'
-    if (sameOriginAsApi) {
-      return ''
-    }
-    const { protocol, hostname } = window.location
-    const host = hostname || '127.0.0.1'
-    return `${protocol}//${host}:8000`.replace(/\/$/, '')
-  }
+  // Docker serves the SPA and API from one FastAPI origin. The browser-visible
+  // host port may be mapped to any value (8100 by default), so never rewrite it.
   return ''
+}
+
+function resolveApiBaseUrl(): string {
+  return resolveApiBaseUrlForRuntime(
+    import.meta.env.VITE_API_BASE_URL,
+    import.meta.env.PROD,
+    Boolean(import.meta.env.VITEST),
+  )
 }
 
 const API_BASE_URL = resolveApiBaseUrl()
