@@ -101,6 +101,11 @@ def test_report_writers_never_persist_api_key(tmp_path: Path):
     report = evaluate_cases(_cases(), FakeOrchestrator(secret=secret), _config(secret))
     json_path, markdown_path = write_report(report, tmp_path / "single.json")
 
+    assert report["summary"]["hit_at_5"] == 1.0
+    assert report["summary"]["mrr_at_5"] == 1.0
+    assert report["summary"]["citation_resolution_rate"] == 1.0
+    assert report["summary"]["citation_accuracy"] == 1.0
+    assert report["summary"]["refusal_accuracy"] == 1.0
     assert secret not in json_path.read_text(encoding="utf-8")
     assert secret not in markdown_path.read_text(encoding="utf-8")
 

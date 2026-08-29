@@ -175,17 +175,27 @@ def summarize_rows(rows: Sequence[dict[str, Any]]) -> dict[str, float]:
     if not rows:
         return {key: 0.0 for key in SUMMARY_KEYS}
     successful = [row for row in rows if row["execution_success"] == 1.0]
+    answerable = [row for row in rows if row["answerable"]]
+    answered = [row for row in rows if row["status"] == "answered"]
     retrieval_latencies = [float(row["step_latencies"].get("retrieval", 0.0)) for row in successful]
     end_to_end_latencies = [float(row["processing_time_ms"]) for row in successful]
-    metric_names = (
-        "hit_at_5",
-        "mrr_at_5",
-        "fact_coverage",
-        "citation_resolution_rate",
-        "citation_accuracy",
-        "refusal_accuracy",
-    )
-    summary = {name: mean(float(row[name]) for row in rows) for name in metric_names}
+
+    def scoped_mean(scope: Sequence[dict[str, Any]], metric: str) -> float:
+        return mean(float(row[metric]) for row in scope) if scope else 0.0
+
+    summary = {
+        # Retrieval and answer-quality metrics apply only where the benchmark
+        # declares that supporting evidence exists.
+        "hit_at_5": scoped_mean(answerable, "hit_at_5"),
+        "mrr_at_5": scoped_mean(answerable, "mrr_at_5"),
+        "fact_coverage": scoped_mean(answerable, "fact_coverage"),
+        # Citation metrics describe citations that were actually emitted. A
+        # correct refusal has no citation and must not lower this denominator.
+        "citation_resolution_rate": scoped_mean(answered, "citation_resolution_rate"),
+        "citation_accuracy": scoped_mean(answered, "citation_accuracy"),
+        # Classification and execution metrics cover the entire benchmark.
+        "refusal_accuracy": scoped_mean(rows, "refusal_accuracy"),
+    }
     summary.update(
         {
             "retrieval_latency_p50_ms": percentile(retrieval_latencies, 0.50),
