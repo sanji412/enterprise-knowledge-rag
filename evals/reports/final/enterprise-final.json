@@ -1,0 +1,4616 @@
+{
+  "generated_at": "2026-08-29T11:54:10.077930+00:00",
+  "git_commit": "b9c3cb8c19ef0015a8e0c0754beb87a7500832ea",
+  "base_configuration": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "retrieval_mode": "hybrid",
+    "use_rerank": true,
+    "embedding_profile": "st_bge_large_zh",
+    "top_k": 5
+  },
+  "experiments": {
+    "bm25": {
+      "generated_at": "2026-08-29T11:48:54.883434+00:00",
+      "configuration": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "retrieval_mode": "bm25",
+        "use_rerank": false,
+        "embedding_profile": "st_bge_large_zh",
+        "top_k": 5
+      },
+      "case_count": 30,
+      "summary": {
+        "hit_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "fact_coverage": 0.87,
+        "citation_resolution_rate": 1.0,
+        "citation_accuracy": 0.9772727272727273,
+        "refusal_accuracy": 0.9,
+        "retrieval_latency_p50_ms": 0.33383298432454467,
+        "retrieval_latency_p95_ms": 0.8016669889912009,
+        "end_to_end_latency_p50_ms": 1128.1721249979455,
+        "end_to_end_latency_p95_ms": 1798.5886250098702,
+        "execution_success_rate": 1.0
+      },
+      "by_difficulty": {
+        "easy": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.9,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 0.9,
+          "retrieval_latency_p50_ms": 0.31254198984242976,
+          "retrieval_latency_p95_ms": 203.68737500393763,
+          "end_to_end_latency_p50_ms": 1111.188333015889,
+          "end_to_end_latency_p95_ms": 1797.8223329992034,
+          "execution_success_rate": 1.0
+        },
+        "medium": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.8,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 0.8,
+          "retrieval_latency_p50_ms": 0.3568340034689754,
+          "retrieval_latency_p95_ms": 0.8016669889912009,
+          "end_to_end_latency_p50_ms": 1141.1956250085495,
+          "end_to_end_latency_p95_ms": 1435.3407499729656,
+          "execution_success_rate": 1.0
+        },
+        "hard": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.95,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 0.9,
+          "refusal_accuracy": 1.0,
+          "retrieval_latency_p50_ms": 0.3350829938426614,
+          "retrieval_latency_p95_ms": 0.7098339847289026,
+          "end_to_end_latency_p50_ms": 988.9631250116508,
+          "end_to_end_latency_p95_ms": 2540.684665989829,
+          "execution_success_rate": 1.0
+        }
+      },
+      "cases": [
+        {
+          "id": "E01",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "几点之后打卡会被算作迟到？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.attendance.late"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 203.68737500393763,
+            "reranking": 0.0,
+            "generation": 1027.05204198719,
+            "citation_verification": 0.01679197885096073,
+            "truthfulness_scoring": 0.0007079797796905041
+          },
+          "processing_time_ms": 1239.2310829891358,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E02",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "员工满足什么条件可以享受多少天年假？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.annual",
+            "handbook.leave.sick",
+            "handbook.attendance.late",
+            "handbook.onboarding.security",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "handbook.leave.annual"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.30537499696947634,
+            "reranking": 0.0,
+            "generation": 1089.6738750161603,
+            "citation_verification": 1.28825000138022,
+            "truthfulness_scoring": 0.04079198697581887
+          },
+          "processing_time_ms": 1111.188333015889,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E03",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "连续请病假超过两天需要提供什么证明？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.sick",
+            "faq.repair.materials",
+            "faq.shipping.delay",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "handbook.leave.sick"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.31254198984242976,
+            "reranking": 0.0,
+            "generation": 1307.5541660073213,
+            "citation_verification": 0.8564590243622661,
+            "truthfulness_scoring": 0.02158299321308732
+          },
+          "processing_time_ms": 1329.7216249920893,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E04",
+          "difficulty": "easy",
+          "category": "费用报销",
+          "question": "报销发票最晚要在费用发生后多久提交？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.deadline",
+            "faq.invoice.correction",
+            "handbook.expense.hotel",
+            "faq.repair.materials",
+            "faq.shipping.delay"
+          ],
+          "cited_anchors": [
+            "handbook.expense.deadline"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.39704100345261395,
+            "reranking": 0.0,
+            "generation": 1206.8392500223126,
+            "citation_verification": 0.9920410229824483,
+            "truthfulness_scoring": 0.009792012860998511
+          },
+          "processing_time_ms": 1229.6363750065211,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E05",
+          "difficulty": "easy",
+          "category": "费用报销",
+          "question": "一线城市出差住宿的费用上限是多少？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "handbook.expense.hotel"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.22987500415183604,
+            "reranking": 0.0,
+            "generation": 913.6486249917652,
+            "citation_verification": 0.6890409858897328,
+            "truthfulness_scoring": 0.009707990102469921
+          },
+          "processing_time_ms": 935.2983749995474,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E06",
+          "difficulty": "easy",
+          "category": "入职流程",
+          "question": "新员工怎样才能开通知识库权限？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.onboarding.security",
+            "handbook.leave.sick",
+            "handbook.attendance.late",
+            "handbook.leave.annual",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "handbook.onboarding.security"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.19954200251959264,
+            "reranking": 0.0,
+            "generation": 727.6665829995181,
+            "citation_verification": 1.0628330055624247,
+            "truthfulness_scoring": 0.016375008272007108
+          },
+          "processing_time_ms": 749.9689999967813,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E07",
+          "difficulty": "easy",
+          "category": "产品规格",
+          "question": "ATLAS-X2 的电源输入规格是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.power",
+            "product.orbit.power",
+            "product.atlas.temperature",
+            "product.warranty.atlas"
+          ],
+          "cited_anchors": [
+            "product.atlas.power"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.2828339929692447,
+            "reranking": 0.0,
+            "generation": 1775.7612080022227,
+            "citation_verification": 0.3994590078946203,
+            "truthfulness_scoring": 0.009666982805356383
+          },
+          "processing_time_ms": 1797.8223329992034,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E08",
+          "difficulty": "easy",
+          "category": "故障处理",
+          "question": "ATLAS-X2 出现 E03 且重启后仍异常，要长按复位键多久？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.e03",
+            "faq.exchange.window",
+            "product.atlas.temperature",
+            "product.atlas.power",
+            "product.warranty.atlas"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.4417919844854623,
+            "reranking": 0.0,
+            "generation": 1133.9643330138642,
+            "citation_verification": 0.7515829929616302,
+            "truthfulness_scoring": 0.009291019523516297
+          },
+          "processing_time_ms": 1155.6233339942992,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E09",
+          "difficulty": "easy",
+          "category": "故障处理",
+          "question": "ORBIT-M1 显示 E17 代表什么问题？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "faq.exchange.window",
+            "product.orbit.temperature",
+            "product.orbit.power",
+            "product.warranty.orbit"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.33383298432454467,
+            "reranking": 0.0,
+            "generation": 1061.4714169932995,
+            "citation_verification": 0.7606250001117587,
+            "truthfulness_scoring": 0.012125005014240742
+          },
+          "processing_time_ms": 1083.0073750112206,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E10",
+          "difficulty": "easy",
+          "category": "售后政策",
+          "question": "商品满足哪些条件可以申请七天退货？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.repair.materials",
+            "faq.invoice.correction",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "faq.return.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.3306250146124512,
+            "reranking": 0.0,
+            "generation": 797.6901670044754,
+            "citation_verification": 0.545499991858378,
+            "truthfulness_scoring": 0.009542010957375169
+          },
+          "processing_time_ms": 819.3846249778289,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M01",
+          "difficulty": "medium",
+          "category": "产品规格",
+          "question": "星云设备可以在什么温度范围内工作？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.temperature",
+            "product.orbit.temperature",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.atlas.temperature"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.6274170009419322,
+            "reranking": 0.0,
+            "generation": 1117.9480419959873,
+            "citation_verification": 0.3259590012021363,
+            "truthfulness_scoring": 0.010832998668774962
+          },
+          "processing_time_ms": 1141.1956250085495,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M02",
+          "difficulty": "medium",
+          "category": "产品规格",
+          "question": "极光机应该配什么电源？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.atlas.power"
+          ],
+          "cited_anchors": [
+            "product.orbit.power"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.2514169900678098,
+            "reranking": 0.0,
+            "generation": 1413.3014170220122,
+            "citation_verification": 0.49962502089329064,
+            "truthfulness_scoring": 0.011458003427833319
+          },
+          "processing_time_ms": 1435.3407499729656,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M03",
+          "difficulty": "medium",
+          "category": "保修政策",
+          "question": "ATLAS-X2 和 ORBIT-M1 的整机保修期分别多久？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.atlas",
+            "product.warranty.orbit",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.warranty.atlas",
+            "product.warranty.orbit"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.8016669889912009,
+            "reranking": 0.0,
+            "generation": 1286.5739999979269,
+            "citation_verification": 1.2282909883651882,
+            "truthfulness_scoring": 0.012499978765845299
+          },
+          "processing_time_ms": 1310.2945000282489,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M04",
+          "difficulty": "medium",
+          "category": "故障处理",
+          "question": "ATLAS-X2 出现 E03 时完整的两步处理流程是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.e03",
+            "faq.return.window",
+            "faq.exchange.window",
+            "product.orbit.e17"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.2772090083453804,
+            "reranking": 0.0,
+            "generation": 988.0645840021316,
+            "citation_verification": 0.758291978854686,
+            "truthfulness_scoring": 0.01129199517890811
+          },
+          "processing_time_ms": 1010.3649579978082,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M05",
+          "difficulty": "medium",
+          "category": "故障处理",
+          "question": "ORBIT-M1 显示 E17 后应该怎样处理，处理后还要做什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "product.atlas.e03",
+            "product.orbit.temperature",
+            "product.orbit.power"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.27620900073088706,
+            "reranking": 0.0,
+            "generation": 1176.2878749868833,
+            "citation_verification": 0.6238330097403377,
+            "truthfulness_scoring": 0.010167015716433525
+          },
+          "processing_time_ms": 1197.4979999940842,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M06",
+          "difficulty": "medium",
+          "category": "售后政策",
+          "question": "物流两天都没有变化，我应该怎么处理？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.shipping.delay",
+            "product.orbit.e17",
+            "product.atlas.e03"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 0.4232079954817891,
+            "reranking": 0.0,
+            "generation": 656.3449999957811,
+            "citation_verification": 0.014499993994832039,
+            "truthfulness_scoring": 0.0007910130079835653
+          },
+          "processing_time_ms": 677.6912909990642,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M07",
+          "difficulty": "medium",
+          "category": "售后政策",
+          "question": "换货的申请窗口是多久，必须满足什么前提？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.exchange.window",
+            "faq.return.window",
+            "faq.repair.materials",
+            "faq.invoice.correction",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "faq.exchange.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.31174998730421066,
+            "reranking": 0.0,
+            "generation": 1127.7517919952516,
+            "citation_verification": 0.6742499826941639,
+            "truthfulness_scoring": 0.008749979315325618
+          },
+          "processing_time_ms": 1149.0738329885062,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M08",
+          "difficulty": "medium",
+          "category": "发票服务",
+          "question": "电子发票抬头能更正几次，最晚什么时候申请？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.invoice.correction",
+            "handbook.expense.deadline",
+            "faq.exchange.window",
+            "faq.return.window",
+            "faq.repair.materials"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 0.3811659989878535,
+            "reranking": 0.0,
+            "generation": 979.5027499785647,
+            "citation_verification": 0.014666991773992777,
+            "truthfulness_scoring": 0.00045797787606716156
+          },
+          "processing_time_ms": 1001.2955410056747,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M09",
+          "difficulty": "medium",
+          "category": "维修服务",
+          "question": "提交维修工单需要准备哪三项材料？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.repair.materials",
+            "faq.shipping.delay",
+            "handbook.expense.deadline",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "faq.repair.materials"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.3568340034689754,
+            "reranking": 0.0,
+            "generation": 1003.6031670169905,
+            "citation_verification": 0.3843329905066639,
+            "truthfulness_scoring": 0.009374984074383974
+          },
+          "processing_time_ms": 1025.1670420111623,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M10",
+          "difficulty": "medium",
+          "category": "费用报销",
+          "question": "一线城市出差时，报销发票期限和住宿上限分别是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline",
+            "faq.invoice.correction"
+          ],
+          "cited_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.4232499923091382,
+            "reranking": 0.0,
+            "generation": 1363.5797080060001,
+            "citation_verification": 1.6377079882659018,
+            "truthfulness_scoring": 0.009542010957375169
+          },
+          "processing_time_ms": 1385.3839169896673,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H01",
+          "difficulty": "hard",
+          "category": "产品对比",
+          "question": "请比较 ATLAS-X2 与 ORBIT-M1 的电源输入和工作温度。",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.atlas.power",
+            "product.atlas.temperature",
+            "product.orbit.temperature"
+          ],
+          "cited_anchors": [
+            "product.atlas.power",
+            "product.orbit.power",
+            "product.atlas.temperature",
+            "product.orbit.temperature"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.3810829948633909,
+            "reranking": 0.0,
+            "generation": 1776.7462909978349,
+            "citation_verification": 1.2366250157356262,
+            "truthfulness_scoring": 0.010624993592500687
+          },
+          "processing_time_ms": 1798.5886250098702,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H02",
+          "difficulty": "hard",
+          "category": "故障与保修",
+          "question": "ATLAS-X2 出现 E03，按重启步骤处理后故障仍存在，该怎么继续处理？若设备仍在保修期内可参考多久的整机保修？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas",
+            "product.warranty.orbit",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.75,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.7098339847289026,
+            "reranking": 0.0,
+            "generation": 1501.0104589746334,
+            "citation_verification": 0.7541659870184958,
+            "truthfulness_scoring": 0.008417002391070127
+          },
+          "processing_time_ms": 1523.092750023352,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H03",
+          "difficulty": "hard",
+          "category": "故障与维修",
+          "question": "ORBIT-M1 提示传感器连接异常且最终需要送修，现场先做什么，维修申请又要准备什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "faq.repair.materials",
+            "product.orbit.temperature",
+            "product.orbit.power",
+            "product.warranty.orbit"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17",
+            "faq.repair.materials"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.409332977142185,
+            "reranking": 0.0,
+            "generation": 1108.044583001174,
+            "citation_verification": 0.9009590139612556,
+            "truthfulness_scoring": 0.01129100564867258
+          },
+          "processing_time_ms": 1128.1721249979455,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H04",
+          "difficulty": "hard",
+          "category": "售后判断",
+          "question": "商品未激活、包装完整，但签收已经第 8 天，还能无理由退货吗？如果存在质量问题还有什么政策路径？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.exclusion.consumables",
+            "product.atlas.e03"
+          ],
+          "cited_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.exclusion.consumables",
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 0.5,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.5874999915249646,
+            "reranking": 0.0,
+            "generation": 2518.631125014508,
+            "citation_verification": 1.9802500028163195,
+            "truthfulness_scoring": 0.009457988198846579
+          },
+          "processing_time_ms": 2540.684665989829,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H05",
+          "difficulty": "hard",
+          "category": "保修判断",
+          "question": "设备线材损坏，能按整机保修政策申请免费整机保修吗？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.exclusion.consumables",
+            "product.warranty.atlas",
+            "product.warranty.orbit"
+          ],
+          "cited_anchors": [
+            "faq.exclusion.consumables"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.38654200034216046,
+            "reranking": 0.0,
+            "generation": 968.3758329774719,
+            "citation_verification": 0.3060409799218178,
+            "truthfulness_scoring": 0.008333008736371994
+          },
+          "processing_time_ms": 988.9631250116508,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H06",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "公司今年给每位员工发多少年度奖金？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.sick",
+            "handbook.attendance.late",
+            "handbook.leave.annual",
+            "handbook.onboarding.security",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.32220801222138107,
+            "reranking": 0.0,
+            "generation": 1288.9726250141393,
+            "citation_verification": 0.010707997716963291,
+            "truthfulness_scoring": 0.00020800507627427578
+          },
+          "processing_time_ms": 1309.2708750045858,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H07",
+          "difficulty": "hard",
+          "category": "隐私拒答",
+          "question": "请告诉我客户张三的具体收货地址。",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "no_relevant_evidence",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.3183750086463988,
+            "reranking": 0.0,
+            "generation": 0.0,
+            "citation_verification": 0.0,
+            "truthfulness_scoring": 0.0
+          },
+          "processing_time_ms": 18.390084005659446,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H08",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "竞品 NOVA-Z9 的电源输入参数是什么？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.atlas.power"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.19933399744331837,
+            "reranking": 0.0,
+            "generation": 966.473207983654,
+            "citation_verification": 0.014667020877823234,
+            "truthfulness_scoring": 0.0004999747034162283
+          },
+          "processing_time_ms": 979.3204999878071,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H09",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "公司下一轮统一调薪比例是多少？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "no_relevant_evidence",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.2575000107754022,
+            "reranking": 0.0,
+            "generation": 0.0,
+            "citation_verification": 0.0,
+            "truthfulness_scoring": 0.0
+          },
+          "processing_time_ms": 20.15237498562783,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H10",
+          "difficulty": "hard",
+          "category": "法律拒答",
+          "question": "请根据这些材料直接给出我参加劳动仲裁一定能胜诉的法律结论。",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.repair.materials"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 0.3350829938426614,
+            "reranking": 0.0,
+            "generation": 740.4247920203488,
+            "citation_verification": 0.008542003342881799,
+            "truthfulness_scoring": 0.000500003807246685
+          },
+          "processing_time_ms": 756.6372909932397,
+          "execution_success": 1.0
+        }
+      ]
+    },
+    "vector": {
+      "generated_at": "2026-08-29T11:49:41.105423+00:00",
+      "configuration": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "retrieval_mode": "vector",
+        "use_rerank": false,
+        "embedding_profile": "st_bge_large_zh",
+        "top_k": 5
+      },
+      "case_count": 30,
+      "summary": {
+        "hit_at_5": 1.0,
+        "mrr_at_5": 0.96,
+        "fact_coverage": 0.89,
+        "citation_resolution_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "refusal_accuracy": 0.9333333333333333,
+        "retrieval_latency_p50_ms": 199.19116699020378,
+        "retrieval_latency_p95_ms": 437.2053339902777,
+        "end_to_end_latency_p50_ms": 1387.900959001854,
+        "end_to_end_latency_p95_ms": 2200.5042920063715,
+        "execution_success_rate": 1.0
+      },
+      "by_difficulty": {
+        "easy": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.9,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 0.9,
+          "retrieval_latency_p50_ms": 198.67837501806207,
+          "retrieval_latency_p95_ms": 3761.86008300283,
+          "end_to_end_latency_p50_ms": 1386.7342909798026,
+          "end_to_end_latency_p95_ms": 4683.0546670244075,
+          "execution_success_rate": 1.0
+        },
+        "medium": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 0.95,
+          "fact_coverage": 0.95,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "retrieval_latency_p50_ms": 199.19116699020378,
+          "retrieval_latency_p95_ms": 362.4579999886919,
+          "end_to_end_latency_p50_ms": 1514.0496249950957,
+          "end_to_end_latency_p95_ms": 2200.5042920063715,
+          "execution_success_rate": 1.0
+        },
+        "hard": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 0.9,
+          "fact_coverage": 0.75,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 0.9,
+          "retrieval_latency_p50_ms": 192.91120799607597,
+          "retrieval_latency_p95_ms": 437.2053339902777,
+          "end_to_end_latency_p50_ms": 1202.8087079816032,
+          "end_to_end_latency_p95_ms": 1942.1716670040041,
+          "execution_success_rate": 1.0
+        }
+      },
+      "cases": [
+        {
+          "id": "E01",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "几点之后打卡会被算作迟到？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.attendance.late",
+            "handbook.expense.deadline",
+            "faq.shipping.delay",
+            "handbook.expense.hotel",
+            "handbook.onboarding.security"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 3761.86008300283,
+            "reranking": 0.0,
+            "generation": 904.4828749902081,
+            "citation_verification": 0.018000020645558834,
+            "truthfulness_scoring": 0.000667001586407423
+          },
+          "processing_time_ms": 4683.0546670244075,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E02",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "员工满足什么条件可以享受多少天年假？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.annual",
+            "handbook.leave.sick",
+            "handbook.expense.hotel",
+            "handbook.onboarding.security",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "handbook.leave.annual"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 202.70850000088103,
+            "reranking": 0.0,
+            "generation": 1136.1785420158412,
+            "citation_verification": 6.138124997960404,
+            "truthfulness_scoring": 0.008458009688183665
+          },
+          "processing_time_ms": 1366.421208018437,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E03",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "连续请病假超过两天需要提供什么证明？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.sick",
+            "faq.repair.materials",
+            "handbook.leave.annual",
+            "handbook.expense.deadline",
+            "faq.shipping.delay"
+          ],
+          "cited_anchors": [
+            "handbook.leave.sick"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 357.79020900372416,
+            "reranking": 0.0,
+            "generation": 1008.5031670168974,
+            "citation_verification": 1.1092080094385892,
+            "truthfulness_scoring": 0.010291027138009667
+          },
+          "processing_time_ms": 1386.7342909798026,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E04",
+          "difficulty": "easy",
+          "category": "费用报销",
+          "question": "报销发票最晚要在费用发生后多久提交？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.deadline",
+            "faq.invoice.correction",
+            "faq.shipping.delay",
+            "faq.exchange.window",
+            "faq.repair.materials"
+          ],
+          "cited_anchors": [
+            "handbook.expense.deadline"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 198.67837501806207,
+            "reranking": 0.0,
+            "generation": 1673.1321249972098,
+            "citation_verification": 1.482208986999467,
+            "truthfulness_scoring": 0.004917004844173789
+          },
+          "processing_time_ms": 1892.6062090031337,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E05",
+          "difficulty": "easy",
+          "category": "费用报销",
+          "question": "一线城市出差住宿的费用上限是多少？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline",
+            "handbook.leave.sick",
+            "faq.invoice.correction",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "handbook.expense.hotel"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 187.8462500171736,
+            "reranking": 0.0,
+            "generation": 1212.3623329971451,
+            "citation_verification": 1.3907910033594817,
+            "truthfulness_scoring": 0.00937501317821443
+          },
+          "processing_time_ms": 1420.2173750090878,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E06",
+          "difficulty": "easy",
+          "category": "入职流程",
+          "question": "新员工怎样才能开通知识库权限？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.onboarding.security",
+            "handbook.expense.deadline",
+            "handbook.attendance.late",
+            "faq.shipping.delay",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "handbook.onboarding.security"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 193.89399999636225,
+            "reranking": 0.0,
+            "generation": 932.0887089997996,
+            "citation_verification": 1.575667003635317,
+            "truthfulness_scoring": 0.010749994544312358
+          },
+          "processing_time_ms": 1148.8877910014708,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E07",
+          "difficulty": "easy",
+          "category": "产品规格",
+          "question": "ATLAS-X2 的电源输入规格是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.power",
+            "product.warranty.atlas",
+            "product.orbit.power",
+            "product.atlas.temperature"
+          ],
+          "cited_anchors": [
+            "product.atlas.power"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 196.74929199391045,
+            "reranking": 0.0,
+            "generation": 1170.0548329972662,
+            "citation_verification": 0.5187500210013241,
+            "truthfulness_scoring": 0.009750016033649445
+          },
+          "processing_time_ms": 1387.900959001854,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E08",
+          "difficulty": "easy",
+          "category": "故障处理",
+          "question": "ATLAS-X2 出现 E03 且重启后仍异常，要长按复位键多久？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas",
+            "product.orbit.e17",
+            "product.atlas.power",
+            "product.warranty.orbit"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 202.71904199034907,
+            "reranking": 0.0,
+            "generation": 1495.6010839960072,
+            "citation_verification": 0.6115839933045208,
+            "truthfulness_scoring": 0.010666990419849753
+          },
+          "processing_time_ms": 1717.4357910116669,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E09",
+          "difficulty": "easy",
+          "category": "故障处理",
+          "question": "ORBIT-M1 显示 E17 代表什么问题？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "product.warranty.orbit",
+            "product.orbit.power",
+            "product.atlas.e03",
+            "product.orbit.temperature"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 202.1944580192212,
+            "reranking": 0.0,
+            "generation": 1029.9990000203252,
+            "citation_verification": 0.9104160126298666,
+            "truthfulness_scoring": 0.00958298915065825
+          },
+          "processing_time_ms": 1253.315667010611,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E10",
+          "difficulty": "easy",
+          "category": "售后政策",
+          "question": "商品满足哪些条件可以申请七天退货？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.shipping.delay",
+            "faq.repair.materials",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "faq.return.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 195.32204201095738,
+            "reranking": 0.0,
+            "generation": 1042.0111249841284,
+            "citation_verification": 0.9925830236170441,
+            "truthfulness_scoring": 0.009334005881100893
+          },
+          "processing_time_ms": 1259.7594170074444,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M01",
+          "difficulty": "medium",
+          "category": "产品规格",
+          "question": "星云设备可以在什么温度范围内工作？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.temperature",
+            "product.orbit.temperature",
+            "product.atlas.power",
+            "product.orbit.power"
+          ],
+          "cited_anchors": [
+            "product.atlas.temperature"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 201.63670799229294,
+            "reranking": 0.0,
+            "generation": 936.3044170022476,
+            "citation_verification": 0.37920899922028184,
+            "truthfulness_scoring": 0.024459004634991288
+          },
+          "processing_time_ms": 1159.668333013542,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M02",
+          "difficulty": "medium",
+          "category": "产品规格",
+          "question": "极光机应该配什么电源？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.orbit.temperature",
+            "product.atlas.power",
+            "product.atlas.e03"
+          ],
+          "cited_anchors": [
+            "product.orbit.power"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 198.72312498046085,
+            "reranking": 0.0,
+            "generation": 817.5517909985501,
+            "citation_verification": 1.01200002245605,
+            "truthfulness_scoring": 0.009082985343411565
+          },
+          "processing_time_ms": 1038.9134579745587,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M03",
+          "difficulty": "medium",
+          "category": "保修政策",
+          "question": "ATLAS-X2 和 ORBIT-M1 的整机保修期分别多久？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.orbit",
+            "product.warranty.atlas",
+            "product.orbit.power",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.warranty.atlas",
+            "product.warranty.orbit"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 198.8274590112269,
+            "reranking": 0.0,
+            "generation": 966.6949999809731,
+            "citation_verification": 0.8636249986011535,
+            "truthfulness_scoring": 0.00808399636298418
+          },
+          "processing_time_ms": 1187.1598339930642,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M04",
+          "difficulty": "medium",
+          "category": "故障处理",
+          "question": "ATLAS-X2 出现 E03 时完整的两步处理流程是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.atlas",
+            "product.atlas.e03",
+            "product.atlas.power",
+            "product.orbit.e17"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 0.5,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 362.4579999886919,
+            "reranking": 0.0,
+            "generation": 1168.240875005722,
+            "citation_verification": 0.7744170143269002,
+            "truthfulness_scoring": 0.01333397813141346
+          },
+          "processing_time_ms": 1552.937333995942,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M05",
+          "difficulty": "medium",
+          "category": "故障处理",
+          "question": "ORBIT-M1 显示 E17 后应该怎样处理，处理后还要做什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "product.atlas.e03",
+            "product.warranty.orbit",
+            "product.orbit.power",
+            "product.orbit.temperature"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 193.91250002081506,
+            "reranking": 0.0,
+            "generation": 1611.7191670055036,
+            "citation_verification": 0.5240410100668669,
+            "truthfulness_scoring": 0.009750016033649445
+          },
+          "processing_time_ms": 1828.1980419997126,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M06",
+          "difficulty": "medium",
+          "category": "售后政策",
+          "question": "物流两天都没有变化，我应该怎么处理？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.shipping.delay",
+            "faq.exchange.window",
+            "faq.return.window",
+            "faq.invoice.correction",
+            "product.atlas.e03"
+          ],
+          "cited_anchors": [
+            "faq.shipping.delay"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 200.36891600466333,
+            "reranking": 0.0,
+            "generation": 860.7747500063851,
+            "citation_verification": 0.9775829967111349,
+            "truthfulness_scoring": 0.009583018254488707
+          },
+          "processing_time_ms": 1083.322209015023,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M07",
+          "difficulty": "medium",
+          "category": "售后政策",
+          "question": "换货的申请窗口是多久，必须满足什么前提？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.exchange.window",
+            "faq.shipping.delay",
+            "faq.repair.materials",
+            "faq.return.window",
+            "faq.invoice.correction"
+          ],
+          "cited_anchors": [
+            "faq.exchange.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.5,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 193.20291597978212,
+            "reranking": 0.0,
+            "generation": 1386.5860409860034,
+            "citation_verification": 1.0766249906737357,
+            "truthfulness_scoring": 0.010125018889084458
+          },
+          "processing_time_ms": 1602.0185000088532,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M08",
+          "difficulty": "medium",
+          "category": "发票服务",
+          "question": "电子发票抬头能更正几次，最晚什么时候申请？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.invoice.correction",
+            "handbook.expense.deadline",
+            "faq.shipping.delay",
+            "faq.exchange.window",
+            "faq.repair.materials"
+          ],
+          "cited_anchors": [
+            "faq.invoice.correction"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 205.635499994969,
+            "reranking": 0.0,
+            "generation": 1285.3139999788254,
+            "citation_verification": 0.9511249954812229,
+            "truthfulness_scoring": 0.01320798764936626
+          },
+          "processing_time_ms": 1514.0496249950957,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M09",
+          "difficulty": "medium",
+          "category": "维修服务",
+          "question": "提交维修工单需要准备哪三项材料？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.repair.materials",
+            "faq.shipping.delay",
+            "faq.exchange.window",
+            "faq.exclusion.consumables",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "faq.repair.materials"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 221.43670902005397,
+            "reranking": 0.0,
+            "generation": 1332.6191670203116,
+            "citation_verification": 0.5097080138511956,
+            "truthfulness_scoring": 0.005874986527487636
+          },
+          "processing_time_ms": 1575.0706669932697,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M10",
+          "difficulty": "medium",
+          "category": "费用报销",
+          "question": "一线城市出差时，报销发票期限和住宿上限分别是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline",
+            "faq.invoice.correction",
+            "handbook.leave.sick",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 199.19116699020378,
+            "reranking": 0.0,
+            "generation": 1978.16962498473,
+            "citation_verification": 2.861790999304503,
+            "truthfulness_scoring": 0.009707990102469921
+          },
+          "processing_time_ms": 2200.5042920063715,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H01",
+          "difficulty": "hard",
+          "category": "产品对比",
+          "question": "请比较 ATLAS-X2 与 ORBIT-M1 的电源输入和工作温度。",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.temperature",
+            "product.orbit.power",
+            "product.atlas.temperature",
+            "product.atlas.power"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 192.91120799607597,
+            "reranking": 0.0,
+            "generation": 1327.0002499921247,
+            "citation_verification": 0.11983298463746905,
+            "truthfulness_scoring": 0.00041601015254855156
+          },
+          "processing_time_ms": 1541.1837080027908,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H02",
+          "difficulty": "hard",
+          "category": "故障与保修",
+          "question": "ATLAS-X2 出现 E03，按重启步骤处理后故障仍存在，该怎么继续处理？若设备仍在保修期内可参考多久的整机保修？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.atlas",
+            "product.atlas.e03",
+            "product.warranty.orbit",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.75,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 239.07474998850375,
+            "reranking": 0.0,
+            "generation": 1636.9547919894103,
+            "citation_verification": 11.536457983311266,
+            "truthfulness_scoring": 0.012792006600648165
+          },
+          "processing_time_ms": 1909.3685830011964,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H03",
+          "difficulty": "hard",
+          "category": "故障与维修",
+          "question": "ORBIT-M1 提示传感器连接异常且最终需要送修，现场先做什么，维修申请又要准备什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.orbit",
+            "faq.repair.materials",
+            "product.atlas.e03",
+            "product.orbit.e17",
+            "product.orbit.power"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17",
+            "faq.repair.materials"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 0.5,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 213.01212499383837,
+            "reranking": 0.0,
+            "generation": 1358.2041659974493,
+            "citation_verification": 1.5473749954253435,
+            "truthfulness_scoring": 0.007416994776576757
+          },
+          "processing_time_ms": 1594.2829590057954,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H04",
+          "difficulty": "hard",
+          "category": "售后判断",
+          "question": "商品未激活、包装完整，但签收已经第 8 天，还能无理由退货吗？如果存在质量问题还有什么政策路径？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.shipping.delay",
+            "faq.exclusion.consumables",
+            "faq.invoice.correction"
+          ],
+          "cited_anchors": [
+            "faq.return.window",
+            "faq.exchange.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 232.84729200531729,
+            "reranking": 0.0,
+            "generation": 1688.0834170151502,
+            "citation_verification": 1.530667010229081,
+            "truthfulness_scoring": 0.009041017619892955
+          },
+          "processing_time_ms": 1942.1716670040041,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H05",
+          "difficulty": "hard",
+          "category": "保修判断",
+          "question": "设备线材损坏，能按整机保修政策申请免费整机保修吗？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.exclusion.consumables",
+            "faq.repair.materials",
+            "faq.exchange.window",
+            "product.warranty.atlas"
+          ],
+          "cited_anchors": [
+            "faq.exclusion.consumables"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 200.99404201027937,
+            "reranking": 0.0,
+            "generation": 1627.3928339942358,
+            "citation_verification": 0.5362090014386922,
+            "truthfulness_scoring": 0.008374976459890604
+          },
+          "processing_time_ms": 1849.3624579859897,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H06",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "公司今年给每位员工发多少年度奖金？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.annual",
+            "handbook.expense.hotel",
+            "handbook.leave.sick",
+            "handbook.attendance.late",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 190.73237502016127,
+            "reranking": 0.0,
+            "generation": 945.7391670148354,
+            "citation_verification": 0.00925001222640276,
+            "truthfulness_scoring": 0.0004999747034162283
+          },
+          "processing_time_ms": 1158.3584169857204,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H07",
+          "difficulty": "hard",
+          "category": "隐私拒答",
+          "question": "请告诉我客户张三的具体收货地址。",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.shipping.delay",
+            "faq.repair.materials",
+            "faq.exchange.window",
+            "faq.return.window",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 186.16329098585993,
+            "reranking": 0.0,
+            "generation": 700.129333010409,
+            "citation_verification": 0.015125027857720852,
+            "truthfulness_scoring": 0.0007080088835209608
+          },
+          "processing_time_ms": 908.0545830074698,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H08",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "竞品 NOVA-Z9 的电源输入参数是什么？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.atlas.power",
+            "product.atlas.e03",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 184.6616250113584,
+            "reranking": 0.0,
+            "generation": 814.18879199191,
+            "citation_verification": 0.010374991688877344,
+            "truthfulness_scoring": 0.0006250047590583563
+          },
+          "processing_time_ms": 1021.316416998161,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H09",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "公司下一轮统一调薪比例是多少？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "faq.invoice.correction",
+            "handbook.expense.deadline",
+            "handbook.leave.annual",
+            "faq.shipping.delay"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 187.09329099510796,
+            "reranking": 0.0,
+            "generation": 599.9985829985235,
+            "citation_verification": 0.011791998986154795,
+            "truthfulness_scoring": 0.000500003807246685
+          },
+          "processing_time_ms": 809.1605840018019,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H10",
+          "difficulty": "hard",
+          "category": "法律拒答",
+          "question": "请根据这些材料直接给出我参加劳动仲裁一定能胜诉的法律结论。",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.sick",
+            "faq.repair.materials",
+            "faq.shipping.delay",
+            "handbook.expense.deadline",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 437.2053339902777,
+            "reranking": 0.0,
+            "generation": 743.690749979578,
+            "citation_verification": 0.012625008821487427,
+            "truthfulness_scoring": 0.0006250047590583563
+          },
+          "processing_time_ms": 1202.8087079816032,
+          "execution_success": 1.0
+        }
+      ]
+    },
+    "hybrid": {
+      "generated_at": "2026-08-29T11:50:26.068016+00:00",
+      "configuration": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "retrieval_mode": "hybrid",
+        "use_rerank": false,
+        "embedding_profile": "st_bge_large_zh",
+        "top_k": 5
+      },
+      "case_count": 30,
+      "summary": {
+        "hit_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "fact_coverage": 0.92,
+        "citation_resolution_rate": 1.0,
+        "citation_accuracy": 0.9855072463768116,
+        "refusal_accuracy": 0.9333333333333333,
+        "retrieval_latency_p50_ms": 197.00375001411885,
+        "retrieval_latency_p95_ms": 479.7985410259571,
+        "end_to_end_latency_p50_ms": 1415.92629198567,
+        "end_to_end_latency_p95_ms": 2721.052958018845,
+        "execution_success_rate": 1.0
+      },
+      "by_difficulty": {
+        "easy": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.9,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 0.9,
+          "retrieval_latency_p50_ms": 192.05283399787731,
+          "retrieval_latency_p95_ms": 224.4793749996461,
+          "end_to_end_latency_p50_ms": 1277.8487500036135,
+          "end_to_end_latency_p95_ms": 1835.0555419747252,
+          "execution_success_rate": 1.0
+        },
+        "medium": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.9,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 0.9,
+          "retrieval_latency_p50_ms": 191.4073750085663,
+          "retrieval_latency_p95_ms": 480.98300001583993,
+          "end_to_end_latency_p50_ms": 1425.8484999882057,
+          "end_to_end_latency_p95_ms": 2721.052958018845,
+          "execution_success_rate": 1.0
+        },
+        "hard": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 0.9333333333333333,
+          "refusal_accuracy": 1.0,
+          "retrieval_latency_p50_ms": 208.15383299486712,
+          "retrieval_latency_p95_ms": 479.7985410259571,
+          "end_to_end_latency_p50_ms": 1186.6086669906508,
+          "end_to_end_latency_p95_ms": 3115.40216699359,
+          "execution_success_rate": 1.0
+        }
+      },
+      "cases": [
+        {
+          "id": "E01",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "几点之后打卡会被算作迟到？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.attendance.late",
+            "handbook.expense.deadline",
+            "faq.shipping.delay",
+            "handbook.expense.hotel",
+            "handbook.onboarding.security"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 194.3330829963088,
+            "reranking": 0.0,
+            "generation": 476.6824579855893,
+            "citation_verification": 0.01704200985841453,
+            "truthfulness_scoring": 0.0005420006345957518
+          },
+          "processing_time_ms": 679.6375410049222,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E02",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "员工满足什么条件可以享受多少天年假？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.annual",
+            "handbook.leave.sick",
+            "handbook.onboarding.security",
+            "handbook.expense.hotel",
+            "handbook.attendance.late"
+          ],
+          "cited_anchors": [
+            "handbook.leave.annual"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 224.4793749996461,
+            "reranking": 0.0,
+            "generation": 1051.1257500038482,
+            "citation_verification": 1.444249995984137,
+            "truthfulness_scoring": 0.008833012543618679
+          },
+          "processing_time_ms": 1299.0035420225468,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E03",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "连续请病假超过两天需要提供什么证明？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.sick",
+            "faq.repair.materials",
+            "handbook.leave.annual",
+            "faq.shipping.delay",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "handbook.leave.sick"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 210.8597079932224,
+            "reranking": 0.0,
+            "generation": 1085.5312919884454,
+            "citation_verification": 0.7444589864462614,
+            "truthfulness_scoring": 0.008542003342881799
+          },
+          "processing_time_ms": 1311.9370409986004,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E04",
+          "difficulty": "easy",
+          "category": "费用报销",
+          "question": "报销发票最晚要在费用发生后多久提交？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.deadline",
+            "faq.invoice.correction",
+            "faq.shipping.delay",
+            "faq.repair.materials",
+            "handbook.expense.hotel"
+          ],
+          "cited_anchors": [
+            "handbook.expense.deadline"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 192.05283399787731,
+            "reranking": 0.0,
+            "generation": 1627.1251659782138,
+            "citation_verification": 1.3880000042263418,
+            "truthfulness_scoring": 0.008417002391070127
+          },
+          "processing_time_ms": 1835.0555419747252,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E05",
+          "difficulty": "easy",
+          "category": "费用报销",
+          "question": "一线城市出差住宿的费用上限是多少？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline",
+            "handbook.leave.sick",
+            "faq.invoice.correction",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "handbook.expense.hotel"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 186.3315409864299,
+            "reranking": 0.0,
+            "generation": 768.1400000001304,
+            "citation_verification": 1.0929580021183938,
+            "truthfulness_scoring": 0.012042000889778137
+          },
+          "processing_time_ms": 976.2551250169054,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E06",
+          "difficulty": "easy",
+          "category": "入职流程",
+          "question": "新员工怎样才能开通知识库权限？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.onboarding.security",
+            "handbook.attendance.late",
+            "handbook.expense.deadline",
+            "handbook.leave.sick",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "handbook.onboarding.security"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 187.40254198201,
+            "reranking": 0.0,
+            "generation": 1435.8901670202613,
+            "citation_verification": 0.9479580039624125,
+            "truthfulness_scoring": 0.008875009370967746
+          },
+          "processing_time_ms": 1646.0232089739293,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E07",
+          "difficulty": "easy",
+          "category": "产品规格",
+          "question": "ATLAS-X2 的电源输入规格是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.power",
+            "product.warranty.atlas",
+            "product.orbit.power",
+            "product.atlas.temperature"
+          ],
+          "cited_anchors": [
+            "product.atlas.power"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 187.2084999922663,
+            "reranking": 0.0,
+            "generation": 1069.0478750038892,
+            "citation_verification": 0.6938750157132745,
+            "truthfulness_scoring": 0.009125011274591088
+          },
+          "processing_time_ms": 1277.8487500036135,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E08",
+          "difficulty": "easy",
+          "category": "故障处理",
+          "question": "ATLAS-X2 出现 E03 且重启后仍异常，要长按复位键多久？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas",
+            "product.atlas.power",
+            "product.orbit.e17",
+            "faq.exchange.window"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 197.00375001411885,
+            "reranking": 0.0,
+            "generation": 1468.130207998911,
+            "citation_verification": 0.9042079909704626,
+            "truthfulness_scoring": 0.009249983122572303
+          },
+          "processing_time_ms": 1704.778792016441,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E09",
+          "difficulty": "easy",
+          "category": "故障处理",
+          "question": "ORBIT-M1 显示 E17 代表什么问题？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "product.warranty.orbit",
+            "product.orbit.power",
+            "product.orbit.temperature",
+            "product.atlas.e03"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 190.5832499905955,
+            "reranking": 0.0,
+            "generation": 1015.602958999807,
+            "citation_verification": 1.00545899476856,
+            "truthfulness_scoring": 0.011750002158805728
+          },
+          "processing_time_ms": 1229.0113340131938,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E10",
+          "difficulty": "easy",
+          "category": "售后政策",
+          "question": "商品满足哪些条件可以申请七天退货？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.repair.materials",
+            "faq.invoice.correction",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "faq.return.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 198.55587498750538,
+            "reranking": 0.0,
+            "generation": 717.7379579807166,
+            "citation_verification": 0.6751249893568456,
+            "truthfulness_scoring": 0.012083008186891675
+          },
+          "processing_time_ms": 938.4166660020128,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M01",
+          "difficulty": "medium",
+          "category": "产品规格",
+          "question": "星云设备可以在什么温度范围内工作？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.temperature",
+            "product.orbit.temperature",
+            "product.atlas.power"
+          ],
+          "cited_anchors": [
+            "product.atlas.temperature"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 190.3659579984378,
+            "reranking": 0.0,
+            "generation": 1206.603874976281,
+            "citation_verification": 0.4800420138053596,
+            "truthfulness_scoring": 0.009624985978007317
+          },
+          "processing_time_ms": 1419.5878329919651,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M02",
+          "difficulty": "medium",
+          "category": "产品规格",
+          "question": "极光机应该配什么电源？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.atlas.power",
+            "product.orbit.temperature",
+            "product.atlas.e03"
+          ],
+          "cited_anchors": [
+            "product.orbit.power"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 197.41204200545326,
+            "reranking": 0.0,
+            "generation": 1476.903917005984,
+            "citation_verification": 1.1180829897057265,
+            "truthfulness_scoring": 0.04112499300390482
+          },
+          "processing_time_ms": 1696.683500020299,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M03",
+          "difficulty": "medium",
+          "category": "保修政策",
+          "question": "ATLAS-X2 和 ORBIT-M1 的整机保修期分别多久？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.orbit",
+            "product.warranty.atlas",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.warranty.atlas",
+            "product.warranty.orbit"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 216.69345800182782,
+            "reranking": 0.0,
+            "generation": 1176.4728749985807,
+            "citation_verification": 0.714833993697539,
+            "truthfulness_scoring": 0.01158300437964499
+          },
+          "processing_time_ms": 1415.92629198567,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M04",
+          "difficulty": "medium",
+          "category": "故障处理",
+          "question": "ATLAS-X2 出现 E03 时完整的两步处理流程是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas",
+            "product.orbit.e17",
+            "product.atlas.power"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 198.15895799547434,
+            "reranking": 0.0,
+            "generation": 1046.5267919935286,
+            "citation_verification": 0.9674580069258809,
+            "truthfulness_scoring": 0.01008401159197092
+          },
+          "processing_time_ms": 1266.1686659848783,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M05",
+          "difficulty": "medium",
+          "category": "故障处理",
+          "question": "ORBIT-M1 显示 E17 后应该怎样处理，处理后还要做什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "product.atlas.e03",
+            "product.warranty.orbit",
+            "product.orbit.power",
+            "product.orbit.temperature"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 187.00637502479367,
+            "reranking": 0.0,
+            "generation": 1486.2662079976872,
+            "citation_verification": 0.6219579954631627,
+            "truthfulness_scoring": 0.009416020475327969
+          },
+          "processing_time_ms": 1695.6568750028964,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M06",
+          "difficulty": "medium",
+          "category": "售后政策",
+          "question": "物流两天都没有变化，我应该怎么处理？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.shipping.delay",
+            "product.atlas.e03",
+            "product.orbit.e17"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 191.4073750085663,
+            "reranking": 0.0,
+            "generation": 2508.1056659983005,
+            "citation_verification": 0.005292007699608803,
+            "truthfulness_scoring": 0.00012500095181167126
+          },
+          "processing_time_ms": 2721.052958018845,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M07",
+          "difficulty": "medium",
+          "category": "售后政策",
+          "question": "换货的申请窗口是多久，必须满足什么前提？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.exchange.window",
+            "faq.repair.materials",
+            "faq.return.window",
+            "faq.invoice.correction",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [
+            "faq.exchange.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 180.3815419843886,
+            "reranking": 0.0,
+            "generation": 944.748374982737,
+            "citation_verification": 1.158582977950573,
+            "truthfulness_scoring": 0.009167008101940155
+          },
+          "processing_time_ms": 1145.0958749919664,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M08",
+          "difficulty": "medium",
+          "category": "发票服务",
+          "question": "电子发票抬头能更正几次，最晚什么时候申请？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.invoice.correction",
+            "handbook.expense.deadline",
+            "faq.exchange.window",
+            "faq.repair.materials",
+            "faq.return.window"
+          ],
+          "cited_anchors": [
+            "faq.invoice.correction"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 186.08329101698473,
+            "reranking": 0.0,
+            "generation": 1841.3677909993567,
+            "citation_verification": 0.8114590018521994,
+            "truthfulness_scoring": 0.012167001841589808
+          },
+          "processing_time_ms": 2050.1583339937497,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M09",
+          "difficulty": "medium",
+          "category": "维修服务",
+          "question": "提交维修工单需要准备哪三项材料？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.repair.materials",
+            "faq.shipping.delay",
+            "handbook.expense.deadline",
+            "handbook.leave.annual",
+            "faq.exchange.window"
+          ],
+          "cited_anchors": [
+            "faq.repair.materials"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 480.98300001583993,
+            "reranking": 0.0,
+            "generation": 1221.4158329879865,
+            "citation_verification": 0.9044159960467368,
+            "truthfulness_scoring": 0.012125005014240742
+          },
+          "processing_time_ms": 1725.0943340186495,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M10",
+          "difficulty": "medium",
+          "category": "费用报销",
+          "question": "一线城市出差时，报销发票期限和住宿上限分别是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline",
+            "faq.invoice.correction",
+            "handbook.leave.sick",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 193.97187497816049,
+            "reranking": 0.0,
+            "generation": 1208.2585419993848,
+            "citation_verification": 1.904957985971123,
+            "truthfulness_scoring": 0.009249983122572303
+          },
+          "processing_time_ms": 1425.8484999882057,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H01",
+          "difficulty": "hard",
+          "category": "产品对比",
+          "question": "请比较 ATLAS-X2 与 ORBIT-M1 的电源输入和工作温度。",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.orbit.temperature",
+            "product.atlas.temperature",
+            "product.atlas.power"
+          ],
+          "cited_anchors": [
+            "product.atlas.power",
+            "product.orbit.power",
+            "product.atlas.temperature",
+            "product.orbit.temperature"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 192.0042079873383,
+            "reranking": 0.0,
+            "generation": 1726.25199999311,
+            "citation_verification": 1.0445000079926103,
+            "truthfulness_scoring": 0.012041011359542608
+          },
+          "processing_time_ms": 1940.9776669926941,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H02",
+          "difficulty": "hard",
+          "category": "故障与保修",
+          "question": "ATLAS-X2 出现 E03，按重启步骤处理后故障仍存在，该怎么继续处理？若设备仍在保修期内可参考多久的整机保修？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.atlas",
+            "product.atlas.e03",
+            "product.warranty.orbit",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 210.73233400238678,
+            "reranking": 0.0,
+            "generation": 1897.2688329813536,
+            "citation_verification": 1.0705419990699738,
+            "truthfulness_scoring": 0.010417017620056868
+          },
+          "processing_time_ms": 2129.97633300256,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H03",
+          "difficulty": "hard",
+          "category": "故障与维修",
+          "question": "ORBIT-M1 提示传感器连接异常且最终需要送修，现场先做什么，维修申请又要准备什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.repair.materials",
+            "product.warranty.orbit",
+            "product.orbit.e17",
+            "product.atlas.e03",
+            "product.orbit.power"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17",
+            "faq.repair.materials"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 208.15383299486712,
+            "reranking": 0.0,
+            "generation": 1271.70645899605,
+            "citation_verification": 1.3077920011710376,
+            "truthfulness_scoring": 0.019458995666354895
+          },
+          "processing_time_ms": 1502.5408749934286,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H04",
+          "difficulty": "hard",
+          "category": "售后判断",
+          "question": "商品未激活、包装完整，但签收已经第 8 天，还能无理由退货吗？如果存在质量问题还有什么政策路径？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.exclusion.consumables"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 0.6666666666666666,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 233.22858300525695,
+            "reranking": 0.0,
+            "generation": 2842.465291992994,
+            "citation_verification": 2.560459019150585,
+            "truthfulness_scoring": 0.020916020730510354
+          },
+          "processing_time_ms": 3115.40216699359,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H05",
+          "difficulty": "hard",
+          "category": "保修判断",
+          "question": "设备线材损坏，能按整机保修政策申请免费整机保修吗？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.exclusion.consumables",
+            "faq.repair.materials",
+            "product.warranty.atlas",
+            "faq.exchange.window"
+          ],
+          "cited_anchors": [
+            "faq.exclusion.consumables"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 200.2855839964468,
+            "reranking": 0.0,
+            "generation": 964.6959169767797,
+            "citation_verification": 0.4462500219233334,
+            "truthfulness_scoring": 0.009708019206300378
+          },
+          "processing_time_ms": 1186.6086669906508,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H06",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "公司今年给每位员工发多少年度奖金？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.annual",
+            "handbook.leave.sick",
+            "handbook.attendance.late",
+            "handbook.expense.hotel",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 192.0484169968404,
+            "reranking": 0.0,
+            "generation": 802.3777079943102,
+            "citation_verification": 0.015708006685599685,
+            "truthfulness_scoring": 0.0005420006345957518
+          },
+          "processing_time_ms": 1016.8571250105742,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H07",
+          "difficulty": "hard",
+          "category": "隐私拒答",
+          "question": "请告诉我客户张三的具体收货地址。",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.shipping.delay",
+            "faq.repair.materials",
+            "faq.exchange.window",
+            "faq.return.window",
+            "handbook.expense.deadline"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 210.65233400440775,
+            "reranking": 0.0,
+            "generation": 815.945082984399,
+            "citation_verification": 0.008874980267137289,
+            "truthfulness_scoring": 0.000166997779160738
+          },
+          "processing_time_ms": 1048.7214160093572,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H08",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "竞品 NOVA-Z9 的电源输入参数是什么？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.atlas.power",
+            "product.atlas.e03",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 203.53104200330563,
+            "reranking": 0.0,
+            "generation": 922.3697909910697,
+            "citation_verification": 0.014249992091208696,
+            "truthfulness_scoring": 0.0009579816833138466
+          },
+          "processing_time_ms": 1146.063124993816,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H09",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "公司下一轮统一调薪比例是多少？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "faq.invoice.correction",
+            "handbook.expense.deadline",
+            "handbook.leave.annual",
+            "faq.shipping.delay"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 479.7985410259571,
+            "reranking": 0.0,
+            "generation": 951.9954999850597,
+            "citation_verification": 0.016000005416572094,
+            "truthfulness_scoring": 0.00033300602808594704
+          },
+          "processing_time_ms": 1456.2824169988744,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H10",
+          "difficulty": "hard",
+          "category": "法律拒答",
+          "question": "请根据这些材料直接给出我参加劳动仲裁一定能胜诉的法律结论。",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.repair.materials",
+            "handbook.leave.sick",
+            "faq.shipping.delay",
+            "handbook.expense.deadline",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 224.8077080002986,
+            "reranking": 0.0,
+            "generation": 686.6805839817971,
+            "citation_verification": 0.05800000508315861,
+            "truthfulness_scoring": 0.0007079797796905041
+          },
+          "processing_time_ms": 934.7632499993779,
+          "execution_success": 1.0
+        }
+      ]
+    },
+    "hybrid_rerank": {
+      "generated_at": "2026-08-29T11:54:10.069779+00:00",
+      "configuration": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "retrieval_mode": "hybrid",
+        "use_rerank": true,
+        "embedding_profile": "st_bge_large_zh",
+        "top_k": 5
+      },
+      "case_count": 30,
+      "summary": {
+        "hit_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "fact_coverage": 0.88,
+        "citation_resolution_rate": 1.0,
+        "citation_accuracy": 0.9696969696969697,
+        "refusal_accuracy": 0.9,
+        "retrieval_latency_p50_ms": 2784.796041989466,
+        "retrieval_latency_p95_ms": 4043.7512090138625,
+        "end_to_end_latency_p50_ms": 8726.904458017088,
+        "end_to_end_latency_p95_ms": 10474.020833004033,
+        "execution_success_rate": 1.0
+      },
+      "by_difficulty": {
+        "easy": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.9,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 0.9,
+          "retrieval_latency_p50_ms": 3835.6313749973197,
+          "retrieval_latency_p95_ms": 4045.509542018408,
+          "end_to_end_latency_p50_ms": 9652.693625015672,
+          "end_to_end_latency_p95_ms": 10503.377291985089,
+          "execution_success_rate": 1.0
+        },
+        "medium": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.9,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 0.9,
+          "retrieval_latency_p50_ms": 2943.842874985421,
+          "retrieval_latency_p95_ms": 3812.4875420180615,
+          "end_to_end_latency_p50_ms": 9440.85041701328,
+          "end_to_end_latency_p95_ms": 10282.358458003728,
+          "execution_success_rate": 1.0
+        },
+        "hard": {
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.8,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 0.8333333333333333,
+          "refusal_accuracy": 0.9,
+          "retrieval_latency_p50_ms": 284.7834170097485,
+          "retrieval_latency_p95_ms": 2680.850417003967,
+          "end_to_end_latency_p50_ms": 4274.7626670170575,
+          "end_to_end_latency_p95_ms": 6552.607833000366,
+          "execution_success_rate": 1.0
+        }
+      },
+      "cases": [
+        {
+          "id": "E01",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "几点之后打卡会被算作迟到？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.attendance.late",
+            "faq.shipping.delay",
+            "handbook.expense.deadline",
+            "product.atlas.e03",
+            "faq.return.window"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 187.75250000180677,
+            "reranking": 5129.866207978921,
+            "generation": 542.407250002725,
+            "citation_verification": 0.014249992091208696,
+            "truthfulness_scoring": 0.0004580069798976183
+          },
+          "processing_time_ms": 5880.737333995057,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E02",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "员工满足什么条件可以享受多少天年假？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.annual",
+            "handbook.leave.sick",
+            "handbook.expense.hotel",
+            "handbook.onboarding.security",
+            "handbook.attendance.late"
+          ],
+          "cited_anchors": [
+            "handbook.leave.annual"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3479.5202079985756,
+            "reranking": 4400.954249984352,
+            "generation": 807.5728749972768,
+            "citation_verification": 3.8525830022990704,
+            "truthfulness_scoring": 0.12670800788328052
+          },
+          "processing_time_ms": 8726.904458017088,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E03",
+          "difficulty": "easy",
+          "category": "员工制度",
+          "question": "连续请病假超过两天需要提供什么证明？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.sick",
+            "handbook.leave.annual",
+            "faq.repair.materials",
+            "handbook.expense.deadline",
+            "faq.invoice.correction"
+          ],
+          "cited_anchors": [
+            "handbook.leave.sick"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3835.6313749973197,
+            "reranking": 5348.09695900185,
+            "generation": 1287.2607080207672,
+            "citation_verification": 5.078916990896687,
+            "truthfulness_scoring": 0.17829201533459127
+          },
+          "processing_time_ms": 10503.377291985089,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E04",
+          "difficulty": "easy",
+          "category": "费用报销",
+          "question": "报销发票最晚要在费用发生后多久提交？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.deadline",
+            "faq.invoice.correction",
+            "faq.return.window",
+            "handbook.attendance.late",
+            "faq.exchange.window"
+          ],
+          "cited_anchors": [
+            "handbook.expense.deadline"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3866.9446670101024,
+            "reranking": 5273.950333008543,
+            "generation": 859.0793749899603,
+            "citation_verification": 5.9411659894976765,
+            "truthfulness_scoring": 0.08800000068731606
+          },
+          "processing_time_ms": 10037.314624991268,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E05",
+          "difficulty": "easy",
+          "category": "费用报销",
+          "question": "一线城市出差住宿的费用上限是多少？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline",
+            "handbook.leave.sick",
+            "handbook.leave.annual",
+            "handbook.attendance.late"
+          ],
+          "cited_anchors": [
+            "handbook.expense.hotel"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3912.2371669800486,
+            "reranking": 3849.865750002209,
+            "generation": 1414.2910829978064,
+            "citation_verification": 4.190207982901484,
+            "truthfulness_scoring": 0.07683399599045515
+          },
+          "processing_time_ms": 9211.231541004963,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E06",
+          "difficulty": "easy",
+          "category": "入职流程",
+          "question": "新员工怎样才能开通知识库权限？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.onboarding.security",
+            "handbook.leave.annual",
+            "handbook.leave.sick",
+            "handbook.attendance.late",
+            "handbook.expense.hotel"
+          ],
+          "cited_anchors": [
+            "handbook.onboarding.security"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3773.204541997984,
+            "reranking": 4313.523999997415,
+            "generation": 1531.3967910187785,
+            "citation_verification": 3.8615420053247362,
+            "truthfulness_scoring": 0.1396249863319099
+          },
+          "processing_time_ms": 9652.693625015672,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E07",
+          "difficulty": "easy",
+          "category": "产品规格",
+          "question": "ATLAS-X2 的电源输入规格是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.power",
+            "product.atlas.temperature",
+            "product.orbit.power",
+            "product.warranty.atlas"
+          ],
+          "cited_anchors": [
+            "product.atlas.power"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 4043.7512090138625,
+            "reranking": 4895.179207989713,
+            "generation": 1505.2780830010306,
+            "citation_verification": 1.5918750141281635,
+            "truthfulness_scoring": 0.0687080028001219
+          },
+          "processing_time_ms": 10474.020833004033,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E08",
+          "difficulty": "easy",
+          "category": "故障处理",
+          "question": "ATLAS-X2 出现 E03 且重启后仍异常，要长按复位键多久？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.e03",
+            "product.atlas.power",
+            "product.warranty.atlas"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3792.5142080057412,
+            "reranking": 4630.631667008856,
+            "generation": 1063.722291000886,
+            "citation_verification": 1.7582500004209578,
+            "truthfulness_scoring": 0.04933300078846514
+          },
+          "processing_time_ms": 9517.989708023379,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E09",
+          "difficulty": "easy",
+          "category": "故障处理",
+          "question": "ORBIT-M1 显示 E17 代表什么问题？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "product.orbit.power",
+            "product.warranty.orbit",
+            "faq.exchange.window",
+            "product.orbit.temperature"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 4045.509542018408,
+            "reranking": 4794.980917009525,
+            "generation": 1016.4733339915983,
+            "citation_verification": 1.8827499879989773,
+            "truthfulness_scoring": 0.03875000402331352
+          },
+          "processing_time_ms": 9888.895084004616,
+          "execution_success": 1.0
+        },
+        {
+          "id": "E10",
+          "difficulty": "easy",
+          "category": "售后政策",
+          "question": "商品满足哪些条件可以申请七天退货？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.shipping.delay",
+            "handbook.expense.deadline",
+            "faq.repair.materials"
+          ],
+          "cited_anchors": [
+            "faq.return.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3886.428750003688,
+            "reranking": 5059.781582996948,
+            "generation": 993.3275830117054,
+            "citation_verification": 1.5996249858289957,
+            "truthfulness_scoring": 0.0709999876562506
+          },
+          "processing_time_ms": 9968.457917013438,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M01",
+          "difficulty": "medium",
+          "category": "产品规格",
+          "question": "星云设备可以在什么温度范围内工作？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.temperature",
+            "product.orbit.temperature",
+            "product.atlas.power",
+            "product.orbit.power"
+          ],
+          "cited_anchors": [
+            "product.atlas.temperature"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3602.38895798102,
+            "reranking": 5144.043125008466,
+            "generation": 1054.2189159896225,
+            "citation_verification": 0.8745829982217401,
+            "truthfulness_scoring": 0.05308398976922035
+          },
+          "processing_time_ms": 9835.304665990407,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M02",
+          "difficulty": "medium",
+          "category": "产品规格",
+          "question": "极光机应该配什么电源？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.atlas.power",
+            "product.orbit.temperature"
+          ],
+          "cited_anchors": [
+            "product.orbit.power"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3682.36608299776,
+            "reranking": 4793.726792006055,
+            "generation": 1065.7307080109604,
+            "citation_verification": 6.648667011177167,
+            "truthfulness_scoring": 0.33316700137220323
+          },
+          "processing_time_ms": 9575.807624991285,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M03",
+          "difficulty": "medium",
+          "category": "保修政策",
+          "question": "ATLAS-X2 和 ORBIT-M1 的整机保修期分别多久？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.atlas",
+            "product.warranty.orbit",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.warranty.atlas",
+            "product.warranty.orbit"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3568.9772500190884,
+            "reranking": 5303.036041004816,
+            "generation": 1380.8760000101756,
+            "citation_verification": 1.6270829946734011,
+            "truthfulness_scoring": 0.05941701238043606
+          },
+          "processing_time_ms": 10282.358458003728,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M04",
+          "difficulty": "medium",
+          "category": "故障处理",
+          "question": "ATLAS-X2 出现 E03 时完整的两步处理流程是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas",
+            "product.atlas.power",
+            "faq.exchange.window"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3812.4875420180615,
+            "reranking": 4447.630540991668,
+            "generation": 1880.968124984065,
+            "citation_verification": 2.0537500095088035,
+            "truthfulness_scoring": 0.019916013116016984
+          },
+          "processing_time_ms": 10170.689624996157,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M05",
+          "difficulty": "medium",
+          "category": "故障处理",
+          "question": "ORBIT-M1 显示 E17 后应该怎样处理，处理后还要做什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.e17",
+            "product.orbit.power",
+            "product.warranty.orbit",
+            "product.orbit.temperature"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 3720.83633299917,
+            "reranking": 4366.733625007328,
+            "generation": 1325.3913749940693,
+            "citation_verification": 1.691124984063208,
+            "truthfulness_scoring": 0.041125022107735276
+          },
+          "processing_time_ms": 9440.85041701328,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M06",
+          "difficulty": "medium",
+          "category": "售后政策",
+          "question": "物流两天都没有变化，我应该怎么处理？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.shipping.delay",
+            "faq.exchange.window",
+            "faq.return.window",
+            "handbook.leave.sick",
+            "handbook.attendance.late"
+          ],
+          "cited_anchors": [
+            "faq.shipping.delay"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 2784.796041989466,
+            "reranking": 4878.96475000889,
+            "generation": 2226.972125004977,
+            "citation_verification": 1.9352079834789038,
+            "truthfulness_scoring": 0.06879100692458451
+          },
+          "processing_time_ms": 9919.611249992158,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M07",
+          "difficulty": "medium",
+          "category": "售后政策",
+          "question": "换货的申请窗口是多久，必须满足什么前提？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.exchange.window",
+            "faq.return.window",
+            "faq.shipping.delay",
+            "faq.invoice.correction",
+            "faq.repair.materials"
+          ],
+          "cited_anchors": [
+            "faq.exchange.window"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 2732.5112499820534,
+            "reranking": 4778.27924999292,
+            "generation": 1514.6753749868367,
+            "citation_verification": 2.4735829792916775,
+            "truthfulness_scoring": 0.046542001655325294
+          },
+          "processing_time_ms": 9063.208791980287,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M08",
+          "difficulty": "medium",
+          "category": "发票服务",
+          "question": "电子发票抬头能更正几次，最晚什么时候申请？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.invoice.correction",
+            "handbook.expense.deadline",
+            "handbook.attendance.late",
+            "faq.return.window",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 2943.842874985421,
+            "reranking": 4710.875666001812,
+            "generation": 1025.0517079839483,
+            "citation_verification": 0.009708019206300378,
+            "truthfulness_scoring": 0.0002500019036233425
+          },
+          "processing_time_ms": 8708.592542010592,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M09",
+          "difficulty": "medium",
+          "category": "维修服务",
+          "question": "提交维修工单需要准备哪三项材料？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.repair.materials",
+            "faq.shipping.delay",
+            "handbook.leave.sick",
+            "handbook.expense.deadline",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "faq.repair.materials"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 2183.4133329975884,
+            "reranking": 3556.6420830145944,
+            "generation": 809.0409589931369,
+            "citation_verification": 1.2665840040426701,
+            "truthfulness_scoring": 0.05199998850002885
+          },
+          "processing_time_ms": 6577.85345899174,
+          "execution_success": 1.0
+        },
+        {
+          "id": "M10",
+          "difficulty": "medium",
+          "category": "费用报销",
+          "question": "一线城市出差时，报销发票期限和住宿上限分别是什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline",
+            "faq.invoice.correction",
+            "handbook.leave.sick",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [
+            "handbook.expense.hotel",
+            "handbook.expense.deadline"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 356.52895900420845,
+            "reranking": 1908.5900829813909,
+            "generation": 1243.7027500127442,
+            "citation_verification": 4.070665978360921,
+            "truthfulness_scoring": 0.007458991603925824
+          },
+          "processing_time_ms": 3540.42245898745,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H01",
+          "difficulty": "hard",
+          "category": "产品对比",
+          "question": "请比较 ATLAS-X2 与 ORBIT-M1 的电源输入和工作温度。",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.atlas.temperature",
+            "product.orbit.temperature",
+            "product.atlas.power",
+            "product.orbit.power"
+          ],
+          "cited_anchors": [
+            "product.atlas.power",
+            "product.orbit.power",
+            "product.atlas.temperature",
+            "product.orbit.temperature"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 284.7834170097485,
+            "reranking": 1942.0232090051286,
+            "generation": 1384.859999991022,
+            "citation_verification": 2.489958016667515,
+            "truthfulness_scoring": 0.05345800309441984
+          },
+          "processing_time_ms": 3638.7863330019172,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H02",
+          "difficulty": "hard",
+          "category": "故障与保修",
+          "question": "ATLAS-X2 出现 E03，按重启步骤处理后故障仍存在，该怎么继续处理？若设备仍在保修期内可参考多久的整机保修？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.warranty.atlas",
+            "product.atlas.e03",
+            "product.atlas.power",
+            "faq.exclusion.consumables"
+          ],
+          "cited_anchors": [
+            "product.atlas.e03",
+            "product.warranty.atlas",
+            "faq.exclusion.consumables"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 0.6666666666666666,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 346.44483300508,
+            "reranking": 2361.3492080185097,
+            "generation": 1739.1588339814916,
+            "citation_verification": 2.9107920126989484,
+            "truthfulness_scoring": 0.02704199869185686
+          },
+          "processing_time_ms": 4476.1347500025295,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H03",
+          "difficulty": "hard",
+          "category": "故障与维修",
+          "question": "ORBIT-M1 提示传感器连接异常且最终需要送修，现场先做什么，维修申请又要准备什么？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.repair.materials",
+            "product.orbit.e17",
+            "product.warranty.orbit",
+            "product.orbit.temperature",
+            "product.orbit.power"
+          ],
+          "cited_anchors": [
+            "product.orbit.e17",
+            "faq.repair.materials"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 1.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 1401.3870419876184,
+            "reranking": 1905.9186670056079,
+            "generation": 1451.2880420079455,
+            "citation_verification": 9.504249988822266,
+            "truthfulness_scoring": 0.12779200915247202
+          },
+          "processing_time_ms": 4791.681208007503,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H04",
+          "difficulty": "hard",
+          "category": "售后判断",
+          "question": "商品未激活、包装完整，但签收已经第 8 天，还能无理由退货吗？如果存在质量问题还有什么政策路径？",
+          "answerable": true,
+          "status": "answered",
+          "refusal_reason": null,
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.exclusion.consumables",
+            "faq.shipping.delay"
+          ],
+          "cited_anchors": [
+            "faq.return.window",
+            "faq.exchange.window",
+            "faq.exclusion.consumables"
+          ],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_accuracy": 0.6666666666666666,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 222.32320901821367,
+            "reranking": 1845.130750007229,
+            "generation": 2173.9300829940476,
+            "citation_verification": 3.2576670055277646,
+            "truthfulness_scoring": 0.04025001544505358
+          },
+          "processing_time_ms": 4274.7626670170575,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H05",
+          "difficulty": "hard",
+          "category": "保修判断",
+          "question": "设备线材损坏，能按整机保修政策申请免费整机保修吗？",
+          "answerable": true,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.exclusion.consumables",
+            "faq.repair.materials",
+            "product.warranty.orbit",
+            "product.warranty.atlas"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "fact_coverage": 0.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 0.0,
+          "step_latencies": {
+            "retrieval": 266.46850001998246,
+            "reranking": 3049.040749989217,
+            "generation": 1654.1469169897027,
+            "citation_verification": 0.02087498432956636,
+            "truthfulness_scoring": 0.0005420006345957518
+          },
+          "processing_time_ms": 4993.763083009981,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H06",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "公司今年给每位员工发多少年度奖金？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.annual",
+            "handbook.expense.hotel",
+            "handbook.onboarding.security",
+            "handbook.leave.sick",
+            "handbook.attendance.late"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 2680.850417003967,
+            "reranking": 2741.1613749864046,
+            "generation": 1097.7579170139506,
+            "citation_verification": 0.010666990419849753,
+            "truthfulness_scoring": 0.00037500285543501377
+          },
+          "processing_time_ms": 6552.607833000366,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H07",
+          "difficulty": "hard",
+          "category": "隐私拒答",
+          "question": "请告诉我客户张三的具体收货地址。",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "faq.shipping.delay",
+            "faq.repair.materials",
+            "faq.exchange.window",
+            "faq.return.window"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 1868.558457994368,
+            "reranking": 1903.4261670021806,
+            "generation": 846.5875829861034,
+            "citation_verification": 0.012250005966052413,
+            "truthfulness_scoring": 0.0004580069798976183
+          },
+          "processing_time_ms": 4643.630167003721,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H08",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "竞品 NOVA-Z9 的电源输入参数是什么？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "product.orbit.power",
+            "product.atlas.power",
+            "faq.exclusion.consumables",
+            "product.atlas.e03",
+            "faq.repair.materials"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 402.86945801926777,
+            "reranking": 1883.936915983213,
+            "generation": 1605.174792028265,
+            "citation_verification": 0.008666014764457941,
+            "truthfulness_scoring": 0.000166997779160738
+          },
+          "processing_time_ms": 3922.5851660012268,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H09",
+          "difficulty": "hard",
+          "category": "越界拒答",
+          "question": "公司下一轮统一调薪比例是多少？",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.expense.hotel",
+            "handbook.leave.annual",
+            "handbook.attendance.late",
+            "handbook.onboarding.security",
+            "handbook.leave.sick"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 227.6093749969732,
+            "reranking": 1719.967250013724,
+            "generation": 786.7287499830127,
+            "citation_verification": 0.01462499494664371,
+            "truthfulness_scoring": 0.0007499766070395708
+          },
+          "processing_time_ms": 2757.763291010633,
+          "execution_success": 1.0
+        },
+        {
+          "id": "H10",
+          "difficulty": "hard",
+          "category": "法律拒答",
+          "question": "请根据这些材料直接给出我参加劳动仲裁一定能胜诉的法律结论。",
+          "answerable": false,
+          "status": "refused",
+          "refusal_reason": "unverified_citations",
+          "error": null,
+          "provider": "deepseek",
+          "model": "deepseek-v4-flash",
+          "retrieved_anchors": [
+            "handbook.leave.sick",
+            "handbook.expense.deadline",
+            "handbook.onboarding.security",
+            "handbook.leave.annual"
+          ],
+          "cited_anchors": [],
+          "hit_at_5": 0.0,
+          "mrr_at_5": 0.0,
+          "fact_coverage": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_accuracy": 0.0,
+          "refusal_accuracy": 1.0,
+          "step_latencies": {
+            "retrieval": 243.95391601137817,
+            "reranking": 1842.6576250058133,
+            "generation": 823.9092920266557,
+            "citation_verification": 0.015458994312211871,
+            "truthfulness_scoring": 0.000833999365568161
+          },
+          "processing_time_ms": 2934.898500010604,
+          "execution_success": 1.0
+        }
+      ]
+    }
+  },
+  "raw_execution_git_commit": "b9c3cb8c19ef0015a8e0c0754beb87a7500832ea",
+  "aggregation_git_commit": "cf0eb9d4c29b6127b050a457433e094e581e8a0d",
+  "aggregated_at": "2026-08-29T11:58:42.608731+00:00"
+}

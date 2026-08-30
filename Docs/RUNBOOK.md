@@ -1,365 +1,334 @@
-# Project Runbook
+# 企业知识库 RAG 运行手册
 
-This runbook describes how to start, run, validate, and troubleshoot Doc-Ingestion in both local and Docker environments.
+本文给出从空环境启动、入库、验证、评测、停机和排障的完整命令。所有命令都在仓库根目录执行。
 
-## 1) Prerequisites
+## 1. 环境要求
 
-- OS: macOS/Linux/WSL
-- Python: 3.11+ recommended for Docker parity
-- Docker + Docker Compose plugin
-- Ollama installed and running (for local models)
-- Optional cloud model API keys (OpenAI/Anthropic/Gemini)
+- macOS、Linux 或 WSL
+- Docker Desktop / Docker Engine + Compose 插件
+- Git
+- 约 12 GB 可用磁盘空间
+- 建议 Docker 可用内存至少 8 GB；16 GB 内存的电脑不要同时运行多个重型 AI/Java 栈
+- DeepSeek API Key（真实生成与评测需要）
 
-## 2) Repository setup (local)
+默认宿主机端口：
 
-```bash
-git clone <your-repo-url>
-cd Doc-Ingestion
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements/base.txt
-```
+| 组件 | 端口 |
+| --- | ---: |
+| React + FastAPI | 8100 |
+| Qdrant | 16333 |
+| Redis | 16379 |
 
-## 3) Model setup
-
-### 3.1 Ollama models
-
-```bash
-ollama pull nomic-embed-text
-ollama pull qwen2.5:7b
-```
-
-### 3.2 Optional cloud model keys
-
-```bash
-export OPENAI_API_KEY=...
-export ANTHROPIC_API_KEY=...
-export GEMINI_API_KEY=...
-```
-
-### 3.3 Hugging Face cache for reranker (recommended)
-
-Keep reranking enabled while avoiding repeated model downloads:
-
-```bash
-export HF_HOME="$HOME/.cache/huggingface"
-export TRANSFORMERS_CACHE="$HF_HOME/transformers"
-export SENTENCE_TRANSFORMERS_HOME="$HF_HOME/sentence_transformers"
-```
-
-Optional one-time warmup (local):
-
-```bash
-python -c "from sentence_transformers import CrossEncoder; CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')"
-```
-
-## 4) Configuration
-
-Main config: `config.yaml`
-
-Important sections:
-
-- `generation`: default model, cache TTL
-- `llm`: provider defaults + allowlists
-- `chunking`: default and allowed ingestion chunking strategies
-- `embeddings`: default and allowed embedding profiles
-- `api`: auth + rate limiting
-
-### 4.1 API auth
-
-Use one of:
-
-- `api.api_keys` list in `config.yaml`
-- or env var `DOC_API_KEYS` with comma-separated values
-
-Example:
-
-```bash
-export DOC_API_KEYS="dev-key-1,dev-key-2"
-export DOC_API_KEY="dev-key-1"   # Streamlit client key used for API calls
-```
-
-Note: local Ollama query requests can run without `X-API-Key`; cloud-provider requests still require API auth when enabled.
-You can also paste the API key directly in the Streamlit sidebar (`Session Security`) and keep it session-scoped.
-For cloud providers, you can paste provider keys in Streamlit (`Provider Keys (session-only)`) so they are sent per request without writing to disk.
-
-### 4.2 Redis distributed limiter
-
-Set:
-
-- `api.redis_rate_limit_enabled: true`
-- `api.redis_url: redis://localhost:6379/0`
-
-If Redis is unavailable, API automatically falls back to in-memory limiter.
-
-## 5) Ingest documents
-
-Place files in `data/documents/` and run:
-
-```bash
-python -m src.ingest --docs data/documents
-```
-
-Optional ingestion overrides:
-
-```bash
-python -m src.ingest \
-  --docs data/documents \
-  --chunk-strategy medical \
-  --embedding-profile st_minilm
-```
-
-Supported chunking strategies:
-
-- `tiktoken`
-- `spacy`
-- `nltk`
-- `medical`
-- `legal`
-
-Built-in embedding profiles:
-
-- `ollama_nomic`
-- `st_minilm`
-- `st_mpnet_base`
-- `st_multi_qa_minilm`
-- `st_bge_small_en`
-
-Verify artifacts:
-
-- BM25 index: `data/embeddings/bm25_index.json`
-- Chroma data: `data/embeddings/chroma/`
-
-## 6) Start services locally
-
-### 6.1 API
-
-```bash
-uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### 6.2 Streamlit UI
-
-In another terminal:
-
-```bash
-export DOC_API_KEY="dev-key-1"
-PYTHONPATH=. streamlit run src/web/streamlit_app.py
-```
-
-Open:
-
-- API: `http://localhost:8000/health`
-- UI: `http://localhost:8501`
-
-## 7) API usage
-
-### 7.1 Health
-
-```bash
-curl http://127.0.0.1:8000/health
-```
-
-### 7.2 Query
-
-```bash
-curl -X POST http://127.0.0.1:8000/query \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key-1" \
-  -d '{
-    "query":"How does hybrid retrieval work?",
-    "provider":"ollama",
-    "model":"qwen2.5:7b",
-    "top_k":5,
-    "include_citations":true
-  }'
-```
-
-You can also route retrieval using a specific embedding profile:
-
-```bash
-curl -X POST http://127.0.0.1:8000/query \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key-1" \
-  -d '{
-    "query":"How does hybrid retrieval work?",
-    "embedding_profile":"st_minilm",
-    "top_k":5
-  }'
-```
-
-### 7.3 Streaming query (SSE)
-
-```bash
-curl -N -X POST http://127.0.0.1:8000/query/stream \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key-1" \
-  -d '{
-    "query":"Stream explanation of reranking",
-    "provider":"openai",
-    "model":"gpt-4o-mini",
-    "stream":true
-  }'
-```
-
-## 8) Start with Docker Compose
-
-Compose file: `docker/docker-compose.yml`
-
-Optional env file bootstrap:
+## 2. 首次配置
 
 ```bash
 cp docker/.env.example docker/.env
 ```
 
-### 8.1 Build + start
+在本机编辑 `docker/.env`，至少确认：
 
-```bash
-docker compose -f docker/docker-compose.yml up --build
+```dotenv
+APP_PORT=8100
+REDIS_HOST_PORT=16379
+QDRANT_HOST_PORT=16333
+DOC_API_KEYS=dev-key-1
+DOC_API_KEY=dev-key-1
+DEEPSEEK_API_KEY=你的真实 Key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+HF_HUB_OFFLINE=1
+TRANSFORMERS_OFFLINE=1
 ```
 
-Docker image preloads reranker model weights during build:
+注意：
+
+- `docker/.env` 不提交 Git。
+- 不要在终端执行 `echo $DEEPSEEK_API_KEY`，也不要把真实 Key 放进截图。
+- `dev-key-1` 只是本地演示用 API Key，不是生产凭据。
+
+## 3. 构建与启动
 
 ```bash
-python -c "from sentence_transformers import CrossEncoder; CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')"
+docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --build
+docker compose --env-file docker/.env -f docker/docker-compose.yml ps
 ```
 
-and compose persists HF caches in `hf_cache` volume to avoid re-downloading.
+首次构建会把以下 Hugging Face 模型固化进镜像/缓存：
 
-### 8.1.1 Optional offline mode (air-gapped runtime)
+- `BAAI/bge-large-zh-v1.5`
+- `BAAI/bge-reranker-v2-m3`
 
-After prewarming caches, run containers with HF network calls disabled:
+构建完成后的正常状态是 `api`、`qdrant`、`redis` 均为 `healthy`。检查：
 
 ```bash
-HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 docker compose -f docker/docker-compose.yml up --build
+curl -fsS http://127.0.0.1:8100/health
+curl -fsS http://127.0.0.1:16333/healthz
+docker compose --env-file docker/.env -f docker/docker-compose.yml exec redis redis-cli ping
 ```
 
-Notes:
+然后访问 `http://127.0.0.1:8100`。
 
-- Set offline flags only after cache is populated.
-- If a model is missing from cache, offline mode will fail fast instead of downloading.
+## 4. 入库冻结企业语料
 
-Services started:
+### 4.1 从宿主机入库
 
-- `api` on `:8000`
-- `streamlit` on `:8501`
-- `redis` on `:6379`
-- `qdrant` on `:6333`
-
-### 8.2 Start detached
+先创建本地 Python 环境：
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d --build
+python3 -m venv .venv
+.venv/bin/pip install -r requirements/base.txt -r requirements/eval.txt
 ```
 
-### 8.3 Stop
+因为宿主机配置连接 Qdrant 的 `16333` 端口，可以直接执行：
 
 ```bash
-docker compose -f docker/docker-compose.yml down
+PYTHONPATH=. .venv/bin/python -m src.ingest \
+  --docs evals/corpus/generated \
+  --chunk-strategy zh_structure \
+  --embedding-profile st_bge_large_zh
 ```
 
-### 8.4 Stop and remove volumes
+### 4.2 从 API 容器入库
+
+也可以在容器内部执行：
 
 ```bash
-docker compose -f docker/docker-compose.yml down -v
+docker compose --env-file docker/.env -f docker/docker-compose.yml exec api \
+  python -m src.ingest \
+  --docs evals/corpus/generated \
+  --chunk-strategy zh_structure \
+  --embedding-profile st_bge_large_zh
 ```
 
-## 9) Logs and audit events
+期望结果：
 
-API emits structured JSON audit events:
+- 3 个文件处理成功；
+- BM25 保存到 `data/embeddings/bm25_index.json`；
+- Qdrant collection 为 `documents__st_bge_large_zh`；
+- 冻结语料共 27 个稳定切片；
+- 重复入库不会随机增加重复切片。
 
-- `auth_success`, `auth_failed`
-- `query_success`, `query_failed`
-- `stream_success`, `stream_failed`
+## 5. 浏览器验收
 
-View logs:
+1. 打开 `http://127.0.0.1:8100`。
+2. 创建演示会话。
+3. 在“企业文档”上传 PDF、DOCX、Markdown，选择 `zh_structure` 和 `st_bge_large_zh`。
+4. 切换到“可信问答”。
+5. 提问：`ATLAS-X2 出现 E03 且重启后仍异常，要长按复位键多久？`
+6. 期望：状态为已回答，答案包含 `8 秒`，引用指向 `product_manual.docx` 的 `ATLAS-X2 E03 故障处理`。
+7. 提问：`公司今年给每位员工发多少年度奖金？`
+8. 期望：状态为拒答，答案为 `当前知识库中没有足够依据回答该问题`。
+
+## 6. 自动冒烟测试
+
+冒烟脚本会创建临时会话、上传三种文件，真实调用 DeepSeek 执行一条回答和一条拒答，并断言响应不包含真实 Key。
+
+把本地 env 临时加载到当前 shell，再运行脚本：
 
 ```bash
-docker compose -f docker/docker-compose.yml logs -f api
+set -a
+source docker/.env
+set +a
+./scripts/docker-smoke.sh
 ```
 
-## 10) Operational checks
+期望最后一行：
 
-- Health: `GET /health`
-- Metrics: `GET /metrics` with `X-API-Key`
-- Rate limit check: run bursts and verify `429`
-- Cloud provider check: confirm API key env vars and provider/model allowlist
+```text
+Enterprise RAG Docker smoke test passed: health, 3-file upload, answered citation, refusal.
+```
 
-## 11) Troubleshooting
+脚本产生的数据位于临时目录，退出时自动删除；会话索引由系统按会话生命周期管理。
 
-### 11.1 API returns 401
+## 7. API 调用
 
-- Missing or invalid `X-API-Key`
-- `DOC_API_KEYS`/`api.api_keys` mismatch
-
-### 11.2 API returns 503 on protected endpoints
-
-- Auth enabled but no API keys configured
-
-### 11.3 API returns 429 quickly
-
-- `api.rate_limit_per_minute` too low
-- shared key used by many clients
-
-### 11.4 Redis unavailable
-
-- Verify Redis container/service is up
-- Check `api.redis_url`
-- API should still run via in-memory fallback
-
-### 11.5 Empty retrieval output
-
-- Re-run ingestion
-- Validate `data/embeddings` artifacts exist
-- Ensure query has relevant corpus content
-
-### 11.6 Ollama connection errors in Docker
-
-- On macOS/Windows keep `OLLAMA_BASE_URL=http://host.docker.internal:11434`
-- Ensure Ollama service is running and model is pulled
-- Or switch to non-Ollama embedding profiles (`st_*`) for ingestion/query
-
-### 11.9 Upload returns embedding backend unavailable
-
-- The upload endpoint now returns a clean `400` when Ollama embeddings are selected but not reachable.
-- Fixes:
-  - choose a sentence-transformers embedding profile in the uploader
-  - or configure/reach Ollama on the running server
-  - on Spaces, restart app after config updates so runtime defaults refresh
-
-### 11.7 Anthropic model not found
-
-- If you see `not_found_error` for Anthropic model aliases, update `config.yaml` `llm.allowed_models_by_provider.anthropic`.
-- Current recommended Anthropic model IDs in this project:
-  - `claude-sonnet-4-6`
-  - `claude-haiku-4-5`
-
-### 11.8 Gemini model not found
-
-- If you see Gemini `NOT_FOUND` errors, use current configured IDs:
-  - `gemini-2.5-flash`
-  - `gemini-2.5-pro`
-- The app calls the `v1beta` generateContent endpoint; model availability can vary by account and region.
-
-## 12) Validation checklist (before release)
-
-- Unit tests pass:
+### 7.1 创建会话
 
 ```bash
-PYTHONPATH=. .venv/bin/python -m pytest tests/unit -q
+curl -fsS -X POST http://127.0.0.1:8100/sessions
 ```
 
-- API smoke tests:
-  - `/health`
-  - authenticated `/query`
-  - authenticated `/query/stream`
-- UI smoke tests:
-  - Query tab works with local provider
-  - Ingest tab uploads and ingests file
+### 7.2 非流式查询
 
-## 13) Rollback
+```bash
+curl -fsS -X POST http://127.0.0.1:8100/query \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: dev-key-1' \
+  -d '{
+    "query":"ATLAS-X2 出现 E03 且重启后仍异常，要长按复位键多久？",
+    "provider":"deepseek",
+    "model":"deepseek-v4-flash",
+    "knowledge_scope":"global",
+    "retrieval_mode":"hybrid",
+    "use_rerank":false,
+    "embedding_profile":"st_bge_large_zh"
+  }'
+```
 
-1. Roll back to previous image/tag or git revision.
-2. Restart services.
-3. Run smoke tests from section 12.
-4. Verify ingestion + query on known document.
+关注返回字段：
+
+```text
+status / answer / refusal_reason
+citations[] / retrieved[]
+truthfulness / processing_time_ms
+```
+
+### 7.3 SSE 流式查询
+
+把路径改为 `/query/stream`，并在请求体加入 `"stream": true`：
+
+```bash
+curl -N -X POST http://127.0.0.1:8100/query/stream \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: dev-key-1' \
+  -d '{
+    "query":"员工工作满多久可以享受年假？",
+    "provider":"deepseek",
+    "model":"deepseek-v4-flash",
+    "knowledge_scope":"global",
+    "retrieval_mode":"hybrid",
+    "use_rerank":false,
+    "embedding_profile":"st_bge_large_zh",
+    "stream":true
+  }'
+```
+
+## 8. 运行 30 条 × 4 组真实评测
+
+确保 Qdrant 健康、冻结语料已入库，并在当前 shell 设置 `DEEPSEEK_API_KEY`：
+
+```bash
+set -a
+source docker/.env
+set +a
+
+PYTHONPATH=. .venv/bin/python -m evals.run_ablation \
+  --dataset evals/datasets/enterprise_30.jsonl \
+  --provider deepseek \
+  --model deepseek-v4-flash \
+  --embedding-profile st_bge_large_zh \
+  --output evals/reports/final
+```
+
+这会执行 120 次真实请求。不要并行运行第二份评测，也不要在执行中途修改配置。最终冻结一对报告：
+
+```bash
+cp evals/reports/final/enterprise_ablation.json evals/reports/final/enterprise-final.json
+cp evals/reports/final/enterprise_ablation.md evals/reports/final/enterprise-final.md
+```
+
+只有明确要发布的 `enterprise-final.json/md` 应强制加入 Git，其他临时报告保持忽略。
+
+## 9. 开发验证
+
+### Python
+
+```bash
+PYTHONPATH=. .venv/bin/python -m pytest tests -q
+.venv/bin/python -m ruff check src tests evals scripts
+```
+
+### React
+
+```bash
+cd frontend
+npm install
+npm test
+npm run typecheck
+npm run lint
+npm run build
+cd ..
+```
+
+### 提交前检查
+
+```bash
+git diff --check
+rg -n --hidden --glob '!.git/**' --glob '!docker/.env' \
+  'sk-[A-Za-z0-9_-]{12,}|DEEPSEEK_API_KEY=' .
+git status --short
+```
+
+允许出现环境变量名、`.env.example` 占位值和测试夹具中的明确假值，不允许出现真实 Key；每个命中都要人工核对来源。
+
+## 10. 停止与恢复
+
+停止容器但保留 Qdrant、Redis 和模型缓存卷：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.yml down
+```
+
+再次启动：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.yml up -d
+```
+
+不要随意加 `-v`；它会删除本项目命名卷。需要清空数据时，应先确认目标卷并备份。
+
+## 11. 常见问题
+
+### API 一直不健康
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.yml ps -a
+docker compose --env-file docker/.env -f docker/docker-compose.yml logs --tail=200 api
+```
+
+常见原因是模型缓存不完整、Qdrant 未就绪、内存不足或环境变量错误。
+
+### Embedding / Reranker 提示 offline 且找不到模型
+
+镜像构建没有成功缓存模型。确认网络和镜像源后重新构建；不要简单关闭 offline 标志然后在每次运行时临时下载。
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.yml build --no-cache api
+```
+
+### DeepSeek 返回鉴权或模型错误
+
+检查 `docker/.env` 中：
+
+```text
+DEEPSEEK_API_KEY
+DEEPSEEK_BASE_URL
+```
+
+然后只重建 API 容器：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --force-recreate api
+```
+
+不要打印 Key。可用健康接口和一条最小查询判断问题是否仍在。
+
+### 页面能打开但请求发到 8000 端口
+
+生产构建应使用同源 API，即浏览器访问 `8100` 时请求仍发往 `8100`。确认使用了包含 `resolveApiBaseUrlForRuntime` 修复的前端镜像，然后重新构建 `api`。
+
+### Qdrant 维度不匹配
+
+`st_bge_large_zh` 固定为 1024 维，collection 名为 `documents__st_bge_large_zh`。不要把其他 embedding profile 写进该 collection；更换模型应使用新的 profile/collection 并重新入库。
+
+### Docker 内存不足或容器退出 137
+
+退出码 137 且 `OOMKilled=true` 通常是内存不足。先查看：
+
+```bash
+docker stats --no-stream
+docker inspect enterprise-rag-api-1 --format 'OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}}'
+```
+
+停止当前不需要的其他重型项目容器，再重新启动本栈；不要在未确认目标的情况下删除卷或容器数据。
+
+### 本可回答的问题被拒答
+
+依次检查：
+
+1. 检索轨迹是否包含黄金证据。
+2. chunk ID 是否能解析到本次候选。
+3. DeepSeek 是否按要求输出引用。
+4. 引用验证分数是否低于 `grounding.min_citation_score`。
+5. 召回置信度是否低于 `grounding.min_retrieval_confidence`。
+
+一次只调整一个参数，并用 30 条完整评测验证，避免为了修一个问题破坏整体拒答能力。

@@ -1,5 +1,5 @@
 ---
-title: Doc Ingestion RAG Demo
+title: Enterprise Knowledge RAG
 emoji: 📚
 colorFrom: blue
 colorTo: indigo
@@ -9,348 +9,181 @@ pinned: false
 license: mit
 ---
 
-# Doc-Ingestion
+# 企业知识库可信问答系统
 
-Doc-Ingestion is a citation-aware RAG system that turns private document collections into grounded question-answering experiences. It demonstrates how to ingest documents, retrieve the right evidence, generate answers from that evidence, and return citations plus truthfulness signals through a React UI (served by FastAPI), standalone FastAPI, optional Streamlit legacy UI, and CLI.
+面向中文企业文档的端到端 RAG 应用：把员工手册、产品说明书和售后 FAQ 解析入库，通过 **Jieba BM25 + BGE-large-zh + 加权 RRF + Cross-Encoder** 检索证据，再由 **DeepSeek** 生成带可核验引用的中文回答；知识库没有依据时明确拒答。
 
-> <strong><a href="https://huggingface.co/spaces/vampokala/doc-ingestion" target="_blank" rel="noopener noreferrer">Try the live demo on Hugging Face Spaces</a></strong> - no install required.
+本项目基于开源项目 [vampokala/Doc-Ingestion](https://github.com/vampokala/Doc-Ingestion) 二次开发。文末区分了上游能力与本分支的中文企业场景改造。
 
-## Why This Project Exists
+## 三个完整闭环
 
-Most teams have knowledge scattered across PDFs, Word docs, markdown notes, text files, and HTML exports. Traditional search can find matching words, but it does not synthesize answers. Generic LLMs can synthesize answers, but they may not know what is inside your documents and can hallucinate without evidence.
+1. **文档入库**：解析 → 中文结构切片 → 稀疏/稠密双索引 → 稳定 chunk ID。
+2. **可信问答**：双路召回 → RRF 融合 → 重排 → DeepSeek 生成 → 引用校验 → 回答或拒答。
+3. **质量评测**：30 条中文分级用例 × 4 组配置，共 120 次真实执行，量化检索、答案、引用、拒答和延迟。
 
-This project solves that gap: ingest your documents, ask natural-language questions, and receive answers grounded in retrieved source chunks with citations and quality signals.
+## 核心能力与技术栈
 
-## What It Showcases
+- 正式验收支持 **PDF、DOCX、Markdown**，保留 TXT、HTML 兼容能力。
+- `zh_structure` 按章节、自然段和中文标点切片，保留文件名、页码、章节、序号与内容哈希。
+- `BAAI/bge-large-zh-v1.5` + Qdrant 构建中文语义索引。
+- Jieba BM25 召回型号、金额、期限等精确词；加权 RRF 融合稀疏与稠密排名。
+- `BAAI/bge-reranker-v2-m3` 可选重排，DeepSeek OpenAI 兼容接口负责中文生成。
+- 引用绑定稳定 chunk ID；校验失败、证据不足或问题越界时返回 `refused`。
+- React 展示回答、引用台账与检索证据；FastAPI 提供同步和 SSE 接口；Docker Compose 编排 API、Redis、Qdrant。
 
-For non-technical reviewers, this is a working document Q&A product: load documents, ask questions, inspect answers, and verify sources.
-
-For technical reviewers, this is an end-to-end RAG reference implementation with:
-
-- Multi-format ingestion for `.pdf`, `.docx`, `.txt`, `.md`, and `.html`
-- Token-aware chunking with selectable strategies (`tiktoken`, `spacy`, `nltk`, `medical`, `legal`)
-- Hybrid retrieval using BM25 keyword search plus vector search
-- Weighted Reciprocal Rank Fusion (RRF) across sparse and dense results
-- Optional cross-encoder reranking for stronger final context
-- Multi-provider LLM routing across Ollama, OpenAI, Anthropic, and Gemini
-- Citation tracking, citation verification, and inline truthfulness scoring
-- FastAPI, React upload FAQ guidance, Streamlit, CLI, Docker, Redis-backed rate limiting, and offline evals
-
-## Product Capabilities
-
-This is the user-facing flow: documents become a searchable knowledge base, and users ask questions against that knowledge base instead of relying on ungrounded model memory.
+## 端到端架构
 
 ```mermaid
 flowchart LR
-  subgraph userLayer [User Experience]
-    upload[Upload Or Select Documents]
-    ask[Ask Natural Language Questions]
-    review[Review Answer With Citations]
-  end
-
-  subgraph knowledgeLayer [Knowledge Base]
-    ingest[Ingest Documents]
-    stored[Documents Stored And Indexed]
-  end
-
-  subgraph outcomeLayer [Business Outcome]
-    grounded[Grounded RAG Answer]
-    citations[Source Citations]
-    trust[Truthfulness Signal]
-  end
-
-  upload --> ingest --> stored
-  stored --> ask
-  ask --> grounded
-  grounded --> citations
-  grounded --> trust
-  citations --> review
-  trust --> review
+    A[PDF / DOCX / Markdown] --> B[解析与中文结构切片]
+    B --> C[Jieba BM25]
+    B --> D[BGE-large-zh]
+    D --> E[(Qdrant)]
+    Q[中文问题] --> F[BM25 召回]
+    Q --> G[向量召回]
+    C --> F
+    E --> G
+    F --> H[加权 RRF]
+    G --> H
+    H --> I[Cross-Encoder 重排]
+    I --> J[上下文预算与证据编号]
+    J --> K[DeepSeek 生成]
+    K --> L[引用解析与证据校验]
+    L --> M{证据充分?}
+    M -->|是| N[回答 + 引用]
+    M -->|否| O[明确拒答]
 ```
 
-## Under The Hood
+组件职责、数据结构和请求时序见 [中文架构说明](Docs/ARCHITECTURE-ZH.md)。
 
-The technical pipeline combines ingestion, sparse retrieval, semantic retrieval, rank fusion, reranking, model routing, citation verification, and answer scoring.
+## 实测界面
 
-```mermaid
-flowchart TB
-  subgraph ingestionLayer [Ingestion Layer]
-    direction LR
-    documents[Documents]
-    ingest[Ingest]
-    chunk[Chunk]
-    embed[Create Embeddings]
-    vectorStore[Chroma Or Qdrant]
-    keywordIndex[BM25 Keyword Index]
-  end
+| 有依据回答 | 无依据拒答 |
+| --- | --- |
+| ![答案绑定产品手册引用](Docs/screenshots/answer-grounded.jpg) | ![知识库无依据时明确拒答](Docs/screenshots/refusal.jpg) |
 
-  subgraph retrievalLayer [Retrieval Layer]
-    direction LR
-    query[User Query]
-    keyword[Keyword Retrieval]
-    semantic[Semantic Retrieval]
-    rrf[Weighted RRF Fusion]
-    rerank[Cross Encoder Rerank]
-  end
+左图问题为“ATLAS-X2 出现 E03 且重启后仍异常，要长按复位键多久？”，系统回答“8 秒”并绑定 `product_manual.docx` 的稳定 chunk ID。右图询问文档未提供的年度奖金，系统返回“当前知识库中没有足够依据回答该问题”。
 
-  subgraph generationLayer [Generation And Trust Layer]
-    direction LR
-    context[Context Optimizer]
-    aggregator[LLM Provider Aggregator]
-    answer[Answer]
-    citations[Citation Verification]
-    truth[Truthfulness Score]
-  end
+## 30 条用例、120 次真实评测
 
-  documents --> ingest
-  ingest --> chunk
-  chunk --> embed --> vectorStore
-  chunk --> keywordIndex
+评测日期：2026-08-29；生成模型：`deepseek/deepseek-v4-flash`；冻结语料：3 个文件、27 个稳定切片；用例：Easy / Medium / Hard 各 10 条，其中 25 条可回答、5 条应拒答。
 
-  query --> keyword
-  query --> semantic
-  keywordIndex --> keyword
-  vectorStore --> semantic
-  keyword --> rrf
-  semantic --> rrf
+| 配置 | Hit@5 | MRR@5 | 事实覆盖 | 引用解析 | 引用准确 | 拒答准确 | 执行成功 | P50 | P95 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BM25 | 100% | 100% | 87% | 100% | 97.73% | 90% | 100% | 1.13s | 1.80s |
+| Vector | 100% | 96% | 89% | 100% | 100% | 93.33% | 100% | 1.39s | 2.20s |
+| Hybrid | 100% | 100% | **92%** | 100% | 98.55% | **93.33%** | 100% | 1.42s | 2.72s |
+| Hybrid + Rerank | 100% | 100% | 88% | 100% | 96.97% | 90% | 100% | 8.73s | 10.47s |
 
-  rrf --> rerank --> context --> aggregator --> answer
-  answer --> citations --> truth
-```
+在 27 切片的小语料上，**Hybrid 是效果与延迟更平衡的默认方案**。重排没有继续提升 Hit@5 或 MRR@5，却把 P95 提高到 10.47 秒；因此组件是否启用要由消融数据决定，而不是默认“越多越好”。
 
-## How Answer Quality Is Protected
+指标口径、分级结果、失败分析和复现实验命令见 [评测说明](Docs/EVALUATION-ZH.md)，冻结报告见 `evals/reports/final/enterprise-final.{json,md}`。
 
-Doc-Ingestion is designed around a grounding contract: retrieve evidence first, generate from that evidence, then report how well the answer is supported.
+## Docker 快速启动
 
-- **Hybrid retrieval:** BM25 catches exact terms, acronyms, and names; vector search catches semantic matches. The results are fused with weighted RRF in [`src/core/hybrid_retriever.py`](src/core/hybrid_retriever.py).
-- **Reranking:** A cross-encoder reranker narrows the final context before generation in [`src/core/reranker.py`](src/core/reranker.py).
-- **Context control:** Retrieved chunks are packed into the prompt within a configured token budget in [`src/core/context_optimizer.py`](src/core/context_optimizer.py).
-- **Provider routing:** The same query path can route to Ollama, OpenAI, Anthropic, or Gemini through [`src/core/llm_provider.py`](src/core/llm_provider.py).
-- **Citations:** Generated citation markers are mapped back to retrieved chunks by [`src/core/citation_tracker.py`](src/core/citation_tracker.py) and verified by [`src/core/citation_verifier.py`](src/core/citation_verifier.py).
-- **Truthfulness:** Each response can include NLI faithfulness and citation groundedness from [`src/evaluation/truthfulness.py`](src/evaluation/truthfulness.py).
-
-## What You Can Try
-
-- Use the hosted [Hugging Face Spaces demo](https://huggingface.co/spaces/vampokala/doc-ingestion) with preloaded sample documents.
-- Upload or ingest your own files locally.
-- Ask questions through Streamlit, FastAPI, or the CLI.
-- Inspect answers, citations, source evidence, and truthfulness scores.
-- Switch LLM providers and models per request when credentials are configured.
-- Select chunking strategy and embedding profile before upload in the React uploader.
-
-In hosted demo mode (`DOC_PROFILE=demo`), Streamlit executes queries in-process through the shared orchestrator so the demo is not blocked by localhost API startup races. Local non-demo mode uses the standard split architecture where Streamlit calls FastAPI over HTTP.
-
-## Tech Stack Snapshot
-
-- **App and API:** Streamlit, FastAPI, Pydantic, Uvicorn
-- **Document processing:** pypdf, python-docx, BeautifulSoup, markdown parsing, token-aware chunking
-- **Retrieval:** BM25, Chroma, Qdrant, sentence-transformers, Ollama embeddings
-- **Ranking:** weighted RRF fusion, `cross-encoder/ms-marco-MiniLM-L-6-v2`
-- **Generation:** Ollama, OpenAI, Anthropic, Gemini
-- **Evaluation:** NLI faithfulness, citation groundedness, golden datasets, RAGAS-style offline harness
-- **Operations:** Docker Compose, Redis-backed rate limiting with in-memory fallback, Hugging Face Spaces deployment
-
-## Quickstart
-
-### Try Online
-
-Open the [Hugging Face Spaces demo](https://huggingface.co/spaces/vampokala/doc-ingestion). Sample documents about RAG, vector databases, and BM25 are preloaded. Paste your OpenAI, Anthropic, or Gemini key in the app if you want to use a cloud provider.
-
-### Run Locally With Docker
+需要 Docker Desktop。默认端口为应用 `8100`、Qdrant `16333`、Redis `16379`，不会占用第一个项目的端口。
 
 ```bash
-git clone https://github.com/vampokala/Doc-Ingestion
-cd Doc-Ingestion
+git clone <你的 GitHub 仓库地址>
+cd enterprise-knowledge-rag
 cp docker/.env.example docker/.env
-# Edit docker/.env to add your API keys if needed.
-docker compose -f docker/docker-compose.yml up
 ```
 
-Open `http://localhost:8000` for the React UI and API (single container image).
+仅在本机编辑 `docker/.env`：
 
-### Run From Source
+```dotenv
+DEEPSEEK_API_KEY=你的 DeepSeek API Key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+```
+
+`docker/.env` 已被 Git 忽略，不要把真实 Key 写进文档、配置或提交记录。
 
 ```bash
-git clone https://github.com/vampokala/Doc-Ingestion
-cd Doc-Ingestion
-bash scripts/bootstrap_demo.sh
+docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --build
+docker compose --env-file docker/.env -f docker/docker-compose.yml ps
 ```
 
-The bootstrap script creates a virtual environment, installs dependencies, ingests sample documents, and pulls Ollama models when Ollama is installed.
+首次构建会下载并固化 BGE Embedding 与重排模型。服务健康后访问 `http://127.0.0.1:8100`。
+
+入库冻结语料：
 
 ```bash
-source .venv/bin/activate
-
-# API server
-PYTHONPATH=. uvicorn src.api.main:app --reload --port 8000
-
-# Streamlit UI in a second terminal
-PYTHONPATH=. streamlit run src/web/streamlit_app.py
-
-# CLI query
-PYTHONPATH=. python -m src.query "What is RAG?"
+docker compose --env-file docker/.env -f docker/docker-compose.yml exec api \
+  python -m src.ingest \
+  --docs evals/corpus/generated \
+  --chunk-strategy zh_structure \
+  --embedding-profile st_bge_large_zh
 ```
 
-For a full local and Docker runbook, see [`Docs/RUNBOOK.md`](Docs/RUNBOOK.md).
+稳定 chunk ID 使重复执行保持幂等。随后可在 React 页面创建会话并提问。
 
-## Ollama and Hugging Face Spaces
-
-**`SPACE_ID` is not a file in this repository.** It is a **runtime environment variable** that [Hugging Face Spaces](https://huggingface.co/docs/hub/spaces-overview) sets inside the Space container (for example `your-username/your-space-name`). Doc-Ingestion reads it from the process environment in [`src/utils/config.py`](src/utils/config.py) when `load_config("config.yaml")` runs. Static LLM provider and model lists still live in [`config.yaml`](config.yaml); Ollama is only removed from the **effective** config when Space detection says it should be.
-
-If you **clone this repo and run it locally** (source or Docker on your machine), **Hugging Face does not set `SPACE_ID`**. The Ollama provider therefore stays in the default LLM list from `config.yaml`, and you can use it after starting the [Ollama](https://ollama.com) daemon and pulling the chat and embedding models described in [`Docs/RUNBOOK.md`](Docs/RUNBOOK.md).
-
-On **Hugging Face Spaces**, the platform **injects `SPACE_ID`** (for example `your-username/your-space-name`). Doc-Ingestion reads that at startup and **removes Ollama** from allowed providers and from `GET /config/llm`, because there is no local Ollama service in the hosted container. Hosted demos use OpenAI, Anthropic, or Gemini with keys you supply in the UI or environment.
-
-| Where you run | `SPACE_ID` | Ollama in the app |
-|---------------|------------|-------------------|
-| Your laptop or your own server / Docker | Not set by default | Yes (per `config.yaml`) |
-| Hugging Face Space | Set automatically by HF | No (automatic) |
-
-**Do not define `SPACE_ID` yourself** for local deployment. It exists so the app can tell it is running inside a Space. If you copied Space-style environment variables into a local `.env` and Ollama disappeared from the UI, remove `SPACE_ID` or set **`DOC_OLLAMA_ENABLED=1`** to force Ollama back on.
-
-**Explicit override (optional):**
-
-- `DOC_OLLAMA_ENABLED=0` — hide Ollama even when `SPACE_ID` is unset (useful if you want cloud-only in your own container).
-- `DOC_OLLAMA_ENABLED=1` — show Ollama even when `SPACE_ID` is set (rare; only if you had a sidecar Ollama and extended the image yourself).
-
-Implementation: [`src/utils/config.py`](src/utils/config.py) (`doc_ollama_runtime_enabled`, applied inside `load_config`).
-
-## API Usage
+运行真实回答/拒答冒烟测试：
 
 ```bash
-uvicorn src.api.main:app --reload --port 8000
+set -a
+source docker/.env
+set +a
+./scripts/docker-smoke.sh
 ```
+
+完整启动、评测、停机和排障命令见 [运行手册](Docs/RUNBOOK.md)。
+
+## 本地开发与验证
 
 ```bash
-curl -X POST http://127.0.0.1:8000/query \
-  -H "X-API-Key: dev-key-1" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is hybrid retrieval?", "provider": "ollama", "model": "qwen2.5:7b"}'
+python3 -m venv .venv
+.venv/bin/pip install -r requirements/base.txt -r requirements/eval.txt
+PYTHONPATH=. .venv/bin/python -m pytest tests -q
+.venv/bin/python -m ruff check src tests evals scripts
+
+cd frontend
+npm install
+npm test
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-Response includes answer text, citations, retrieved evidence, and a `truthfulness` block:
+## 项目目录
 
-```json
-{
-  "answer": "Hybrid retrieval combines BM25 sparse search with dense vector search...",
-  "truthfulness": {
-    "nli_faithfulness": 0.87,
-    "citation_groundedness": 0.91,
-    "uncited_claims": 1,
-    "score": 0.89
-  },
-  "citations": []
-}
+```text
+frontend/                  React 可信问答界面
+src/api/                   FastAPI、会话、流式响应
+src/core/                  解析、检索、重排、生成、引用与拒答
+src/evaluation/            企业评测指标
+evals/corpus/generated/    三份冻结中文企业语料
+evals/datasets/            30 条分级用例
+evals/reports/final/       120 次执行的冻结报告
+docker/                    Compose 与环境变量模板
+Docs/                      架构、评测、运行与面试说明
 ```
 
-Endpoints: `GET /health`, `GET /metrics`, `GET /config/llm`, `GET /config/runtime`, `POST /query`, `POST /query/stream` (SSE).
+## 开源基线与本项目改造
 
-### Upload controls and runtime options
+上游提供了多格式解析、FastAPI/React、BM25/向量召回框架、RRF、重排、引用与 Docker 等通用能力。本分支围绕中文企业问答完成：
 
-- React uploader now follows a 3-step flow:
-  - Step 1: choose chunking strategy + embedding profile
-  - Step 2: choose files (staged, no auto-upload)
-  - Step 3: click upload
-- Runtime options are exposed by `GET /config/runtime` and include:
-  - `chunking_allowed_strategies`
-  - `embedding_profiles`
-- In hosted environments (`SPACE_ID` set), config prefers a non-Ollama embedding profile when available.
+- DeepSeek Provider、模型白名单、同步/流式路径与密钥边界。
+- `zh_structure` 中文切片、稳定 chunk ID、页码/章节/哈希元数据。
+- Jieba BM25、BGE-large-zh、Qdrant collection 隔离与维度校验。
+- 中文重排、企业证据 Prompt、引用校验与结构化拒答策略。
+- 中文 React 界面、知识库范围选择、证据台账与检索轨迹。
+- 30 条三级黄金用例、4 组消融、120 次真实 DeepSeek 执行与指标分母修正。
+- 冲突端口 Docker 栈、离线模型缓存、回答/拒答冒烟脚本。
 
-## Evaluation
+## 当前限制
 
-Every `/query` response can include a `truthfulness` object:
+- 语料只有 3 个文件、27 个切片，评测验证的是工程闭环，不代表大规模生产效果。
+- 未实现扫描件 OCR、复杂表格还原、图片理解、多租户 RBAC 和分布式 Qdrant。
+- Cross-Encoder 当前带来明显延迟；生产化应常驻加载、批处理或按查询难度路由。
+- DeepSeek 是外部生成服务；离线模式只覆盖 Embedding 与重排模型。
 
-| Field | What it measures |
-|-------|------------------|
-| `nli_faithfulness` | Fraction of response sentences entailed by retrieved chunks |
-| `citation_groundedness` | Mean citation verification score |
-| `uncited_claims` | Count of answer sentences without citation markers |
-| `score` | Weighted aggregate of faithfulness and groundedness |
+## 深入阅读
 
-Run the offline harness against the included datasets:
+- [中文架构说明](Docs/ARCHITECTURE-ZH.md)
+- [运行手册](Docs/RUNBOOK.md)
+- [评测与消融](Docs/EVALUATION-ZH.md)
+- [面试讲解与高频追问](Docs/INTERVIEW-NOTES-ZH.md)
 
-```bash
-pip install -r requirements/eval.txt
+## License
 
-PYTHONPATH=. python -m evals.run_evals \
-  --dataset evals/datasets/golden.jsonl \
-  --judge-provider anthropic \
-  --judge-model claude-haiku-4-5 \
-  --output evals/reports/
-
-PYTHONPATH=. python -m evals.run_evals \
-  --dataset evals/datasets/smoke.jsonl \
-  --mock \
-  --no-nli \
-  --output evals/reports/
-
-# Optional comparison matrix (chunking x embedding profiles)
-PYTHONPATH=. python -m evals.run_evals \
-  --dataset evals/datasets/smoke.jsonl \
-  --mock \
-  --no-nli \
-  --chunking-strategies tiktoken,medical \
-  --embedding-profiles st_minilm,st_bge_small_en \
-  --output evals/reports/
-```
-
-Reports are written to `evals/reports/` as JSON and Markdown.
-
-Offline report notes:
-
-- `citation_rate` means at least one citation is verifier-classified as `supported`.
-- `citation_resolution_rate` means at least one citation marker was resolved to a retrieved chunk.
-
-## Project Map
-
-- [`src/core/`](src/core/) - retrieval, reranking, generation, citations, orchestration
-- [`src/api/`](src/api/) - FastAPI models and routes
-- [`src/web/`](src/web/) - Streamlit UI and ingestion service
-- [`src/evaluation/`](src/evaluation/) - truthfulness scorer, generation metrics, retrieval metrics
-- [`src/utils/`](src/utils/) - config, logging, and vector database integrations
-- [`evals/`](evals/) - offline eval harness, golden datasets, RAGAS adapter
-- [`data/sample/`](data/sample/) - preloaded sample documents for demos
-- [`spaces/`](spaces/) - Hugging Face Spaces deployment files
-- [`docker/`](docker/) - Docker Compose stack for API, Streamlit, Redis, and Qdrant
-- [`Docs/`](Docs/) - architecture notes, runbook, roadmap, phase documentation
-
-## Where To Go Deeper
-
-- [`Docs/PROJECT_OVERVIEW.md`](Docs/PROJECT_OVERVIEW.md) - system architecture and reader-friendly project overview
-- [`Docs/PROJECT_OVERVIEW.md#how-custom-embeddings-are-implemented`](Docs/PROJECT_OVERVIEW.md#how-custom-embeddings-are-implemented) - profile-based embedding implementation details
-- [`Docs/RUNBOOK.md`](Docs/RUNBOOK.md) - local setup, Docker setup, API keys, rate limiting, troubleshooting
-- [`Docs/phase2_hybrid_retrieval.md`](Docs/phase2_hybrid_retrieval.md) - hybrid retrieval and RRF design
-- [`Docs/phase3_reranking_generation.md`](Docs/phase3_reranking_generation.md) - reranking, generation, and context optimization
-- [`Docs/phase4_citation_api.md`](Docs/phase4_citation_api.md) - citation and API design
-- [`Docs/performance_baseline.md`](Docs/performance_baseline.md) - FastAPI overhead baseline
-- [`Docs/ROADMAP.md`](Docs/ROADMAP.md) - delivery status and planned improvements
-
-## Development
-
-```bash
-.venv/bin/python -m pytest tests/unit -q
-.venv/bin/python -m pytest tests/integration -q
-```
-
-Multi-provider API key environment variables:
-
-```bash
-export OPENAI_API_KEY=...
-export ANTHROPIC_API_KEY=...
-export GEMINI_API_KEY=...
-export DOC_API_KEYS=dev-key-1
-```
-
-Deployment-related environment variables (not stored in `config.yaml`; see [Ollama and Hugging Face Spaces](#ollama-and-hugging-face-spaces) above):
-
-- **`SPACE_ID`** — injected on Hugging Face Spaces only. You do not add this to a local config file for normal development.
-- **`DOC_OLLAMA_ENABLED`** — optional explicit override: `0` / `false` to hide Ollama, `1` / `true` to show it even when `SPACE_ID` is set.
-
-## Troubleshooting
-
-- **Empty results after ingest:** Run `python -m src.ingest --docs data/documents` and verify `data/embeddings/` exists.
-- **Embedding model error:** If Ollama is unavailable, choose a sentence-transformers profile (`st_minilm`, `st_mpnet_base`, `st_multi_qa_minilm`, `st_bge_small_en`) in the uploader/query settings.
-- **Dimension mismatch after model change:** Re-ingest all documents to rebuild the vector index.
-- **Cloud provider fails:** Check the relevant `*_API_KEY` env var is set.
-- **Truthfulness score always 0:** The NLI model (`cross-encoder/nli-deberta-v3-small`) downloads on first use. Check internet access or set `evaluation.inline_enabled: false` in `config.yaml` to disable.
-- **Ollama missing from the UI or `/config/llm` locally:** You may have `SPACE_ID` or `DOC_OLLAMA_ENABLED=0` in your shell or `docker/.env`. Unset `SPACE_ID` for local runs, or set `DOC_OLLAMA_ENABLED=1`. There is no separate `SPACE_ID` configuration file in the repo—only environment variables and [`config.yaml`](config.yaml).
+延续上游项目的 MIT License。使用或二次开发时请保留相应许可与来源说明。
