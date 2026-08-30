@@ -4,9 +4,9 @@ Compare evaluation metrics between baseline and current results.
 Used in GitHub Actions to gate PRs based on regression thresholds.
 """
 
+import argparse
 import json
 import sys
-import argparse
 from typing import Dict, Tuple
 
 
