@@ -1,9 +1,9 @@
 # 企业知识库 RAG 消融实验
 
-- 生成时间：2026-08-30T07:25:30.770604+00:00
+- 生成时间：2026-08-30T07:26:16.877037+00:00
 - 原始执行 Commit：`b9c3cb8c19ef0015a8e0c0754beb87a7500832ea`
-- 聚合 Commit：`81eca976c4bed241c75cd4770b2fa026b37e1fd2`
-- 聚合工作区 Dirty：`true`
+- 聚合 Commit：`47fed6a71bc84d15a21085efe1de1fed754a082f`
+- 聚合工作区 Dirty：`false`
 
 ## 总体对比
 

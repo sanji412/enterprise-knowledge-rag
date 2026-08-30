@@ -181,4 +181,4 @@ PYTHONPATH=. .venv/bin/python -m evals.run_ablation \
   --output evals/reports/final/enterprise-reaggregated.json
 ```
 
-本次原始执行使用 commit `b9c3cb8c19ef0015a8e0c0754beb87a7500832ea`；可回答用例分母修正最初引入于 commit `cf0eb9d`，最终冻结报告由 commit `81eca976c4bed241c75cd4770b2fa026b37e1fd2` 在干净工作区离线重新聚合。JSON/Markdown 分别显示 `raw_execution_git_commit`、`aggregation_git_commit` 与 `aggregation_git_dirty`；兼容字段 `git_commit` 在离线重聚合报告中明确表示聚合 commit，保证“模型实际执行”和“指标口径”可追溯。
+本次原始执行使用 commit `b9c3cb8c19ef0015a8e0c0754beb87a7500832ea`；可回答用例分母修正最初引入于 commit `cf0eb9d`，最终冻结报告由 commit `47fed6a71bc84d15a21085efe1de1fed754a082f` 在干净工作区离线重新聚合。JSON/Markdown 分别显示 `raw_execution_git_commit`、`aggregation_git_commit` 与 `aggregation_git_dirty`；兼容字段 `git_commit` 在离线重聚合报告中明确表示聚合 commit，保证“模型实际执行”和“指标口径”可追溯。
