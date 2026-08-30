@@ -44,7 +44,7 @@ services:
       - ../config.yaml:/app/config.yaml
       - hf_cache:/app/.cache/huggingface
     ports:
-      - "${APP_PORT:-8100}:8000"
+      - "${BIND_HOST:-127.0.0.1}:${APP_PORT:-8100}:8000"
     depends_on:
       qdrant:
         condition: service_healthy
@@ -60,7 +60,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "${REDIS_HOST_PORT:-16379}:6379"
+      - "${BIND_HOST:-127.0.0.1}:${REDIS_HOST_PORT:-16379}:6379"
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
@@ -73,7 +73,7 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.16
     ports:
-      - "${QDRANT_HOST_PORT:-16333}:6333"
+      - "${BIND_HOST:-127.0.0.1}:${QDRANT_HOST_PORT:-16333}:6333"
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:

@@ -17,6 +17,12 @@ def _load_app(monkeypatch, tmp_path):
 
 def test_session_lifecycle_and_query(monkeypatch, tmp_path):
     api_main = _load_app(monkeypatch, tmp_path)
+    cleaned_collections: list[str] = []
+    monkeypatch.setattr(
+        api_main.session_corpus,
+        "_default_vector_cleanup",
+        lambda: cleaned_collections.append,
+    )
 
     class _FakeOut:
         query = "q"
@@ -68,3 +74,4 @@ def test_session_lifecycle_and_query(monkeypatch, tmp_path):
     deleted = client.delete(f"/sessions/{sid}")
     assert deleted.status_code == 200
     assert deleted.json()["deleted_session_id"] == sid
+    assert cleaned_collections == [f"sess_{sid}"]

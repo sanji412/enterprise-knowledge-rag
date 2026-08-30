@@ -28,9 +28,11 @@ cp docker/.env.example docker/.env
 在本机编辑 `docker/.env`，至少确认：
 
 ```dotenv
+BIND_HOST=127.0.0.1
 APP_PORT=8100
 REDIS_HOST_PORT=16379
 QDRANT_HOST_PORT=16333
+DOC_PROFILE=demo
 DOC_API_KEYS=dev-key-1
 DOC_API_KEY=dev-key-1
 DEEPSEEK_API_KEY=你的真实 Key
@@ -43,7 +45,8 @@ TRANSFORMERS_OFFLINE=1
 
 - `docker/.env` 不提交 Git。
 - 不要在终端执行 `echo $DEEPSEEK_API_KEY`，也不要把真实 Key 放进截图。
-- `dev-key-1` 只是本地演示用 API Key，不是生产凭据。
+- `DOC_PROFILE=demo` 会绕过查询和上传的网关鉴权；本地演示的安全边界是 `BIND_HOST=127.0.0.1`，不是 `dev-key-1`。
+- `DOC_API_KEYS` 只在非 demo profile 生效。不要在保留 demo 绕过时把 `BIND_HOST` 改成 `0.0.0.0` 或局域网地址，否则其他客户端可消耗服务端 DeepSeek Key。
 
 ## 3. 构建与启动
 
@@ -137,7 +140,7 @@ set +a
 Enterprise RAG Docker smoke test passed: health, 3-file upload, answered citation, refusal.
 ```
 
-脚本产生的数据位于临时目录，退出时自动删除；会话索引由系统按会话生命周期管理。
+脚本产生的数据位于临时目录，退出时自动删除；显式删除、TTL 过期或容量淘汰会先删除 Qdrant 中 `sess_<sid>` 及所有 embedding-profile 变体，再删除本地上传和 BM25 状态，且不会删除全局 collection。向量删除失败时本地状态会保留并抛出/记录错误，供后续重试。
 
 ## 7. API 调用
 
@@ -163,6 +166,8 @@ curl -fsS -X POST http://127.0.0.1:8100/query \
     "embedding_profile":"st_bge_large_zh"
   }'
 ```
+
+在默认 `DOC_PROFILE=demo` 下，示例中的 `X-API-Key` 不参与鉴权；它仅用于展示切换到非 demo profile 后的调用形态。
 
 关注返回字段：
 
@@ -217,6 +222,18 @@ cp evals/reports/final/enterprise_ablation.md evals/reports/final/enterprise-fin
 ```
 
 只有明确要发布的 `enterprise-final.json/md` 应强制加入 Git，其他临时报告保持忽略。
+
+### 8.1 从冻结逐用例记录离线重新聚合
+
+指标代码或分母口径变化、但原始 120 条 `cases` 仍有效时，不要再次调用 DeepSeek。先提交聚合代码并保持工作区干净，再运行：
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evals.run_ablation \
+  --reaggregate-from evals/reports/final/enterprise-final.json \
+  --output evals/reports/final/enterprise-reaggregated.json
+```
+
+该分支不加载数据集、benchmark 配置或 `RAGOrchestrator`，只调用当前 `summarize_rows` 重算 `summary` 和 `by_difficulty`。JSON/Markdown 同时记录 `raw_execution_git_commit`、`aggregation_git_commit`、`aggregation_git_dirty`；兼容字段 `git_commit` 表示本次聚合 commit。
 
 ## 9. 开发验证
 

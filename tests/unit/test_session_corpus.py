@@ -4,6 +4,7 @@ import os
 import threading
 import time
 
+import pytest
 from src.web import session_corpus
 
 
@@ -18,10 +19,41 @@ def test_get_or_create_is_idempotent(tmp_path, monkeypatch):
     assert a.chroma_path.exists()
 
 
-def test_delete_session_missing_is_noop(tmp_path, monkeypatch):
+def test_delete_session_without_local_files_still_cleans_vectors(tmp_path, monkeypatch):
     monkeypatch.setenv("DOC_DEMO_SESSION_ROOT", str(tmp_path))
-    session_corpus.delete_session("missing")
+    cleaned: list[str] = []
+
+    session_corpus.delete_session("missing", vector_cleanup=cleaned.append)
+
+    assert cleaned == ["sess_missing"]
     assert not (tmp_path / "missing").exists()
+
+
+def test_delete_session_cleans_vectors_before_local_files(tmp_path, monkeypatch):
+    monkeypatch.setenv("DOC_DEMO_SESSION_ROOT", str(tmp_path))
+    session = session_corpus.get_or_create("abc123")
+    cleanup_calls: list[tuple[str, bool]] = []
+
+    def cleanup(collection_name: str) -> None:
+        cleanup_calls.append((collection_name, session.upload_dir.parent.exists()))
+
+    session_corpus.delete_session("abc123", vector_cleanup=cleanup)
+
+    assert cleanup_calls == [("sess_abc123", True)]
+    assert not session.upload_dir.parent.exists()
+
+
+def test_delete_session_preserves_local_state_when_vector_cleanup_fails(tmp_path, monkeypatch):
+    monkeypatch.setenv("DOC_DEMO_SESSION_ROOT", str(tmp_path))
+    session = session_corpus.get_or_create("abc123")
+
+    def cleanup(_collection_name: str) -> None:
+        raise RuntimeError("qdrant unavailable")
+
+    with pytest.raises(RuntimeError, match="qdrant unavailable"):
+        session_corpus.delete_session("abc123", vector_cleanup=cleanup)
+
+    assert session.upload_dir.parent.exists()
 
 
 def test_janitor_sweep_evicts_ttl(tmp_path, monkeypatch):
@@ -31,8 +63,13 @@ def test_janitor_sweep_evicts_ttl(tmp_path, monkeypatch):
     s = session_corpus.get_or_create(sid)
     old = time.time() - 10
     os.utime(s.upload_dir.parent / ".touched", (old, old))
-    deleted = session_corpus.janitor_sweep(now=time.time())
+    cleaned: list[str] = []
+    deleted = session_corpus.janitor_sweep(
+        now=time.time(),
+        vector_cleanup=cleaned.append,
+    )
     assert deleted >= 1
+    assert cleaned == ["sess_ttl001"]
     assert not s.upload_dir.parent.exists()
 
 

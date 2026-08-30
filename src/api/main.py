@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -119,7 +120,8 @@ app.add_middleware(
 
 def _resolve_client_key(request: Request, api_key: str | None) -> str:
     if api_key:
-        return f"key:{api_key}"
+        digest = hashlib.sha256(api_key.encode("utf-8")).hexdigest()[:16]
+        return f"key:sha256:{digest}"
     if request.client and request.client.host:
         return f"ip:{request.client.host}"
     return "ip:unknown"

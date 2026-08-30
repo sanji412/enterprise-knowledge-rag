@@ -4,6 +4,39 @@ from src.api.main import app
 from src.core.rag_orchestrator import QueryResponse
 from src.core.retrieval_result import RetrievalResult
 from src.evaluation.truthfulness import TruthfulnessResult
+from starlette.requests import Request
+
+
+def _request(client_host: str = "127.0.0.1") -> Request:
+    return Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/",
+            "headers": [],
+            "client": (client_host, 1234),
+            "server": ("testserver", 80),
+            "scheme": "http",
+            "query_string": b"",
+        }
+    )
+
+
+def test_gateway_api_key_client_identifier_is_stable_irreversible_and_distinct():
+    secret = "gateway-secret-plaintext"
+
+    first = api_main._resolve_client_key(_request(), secret)
+    second = api_main._resolve_client_key(_request(), secret)
+    other = api_main._resolve_client_key(_request(), "another-secret")
+
+    assert first == second
+    assert first != other
+    assert secret not in first
+    assert first.startswith("key:sha256:")
+
+
+def test_client_identifier_keeps_ip_fallback_without_gateway_key():
+    assert api_main._resolve_client_key(_request("192.0.2.10"), None) == "ip:192.0.2.10"
 
 
 def test_health_endpoint():

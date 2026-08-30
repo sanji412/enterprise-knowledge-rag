@@ -19,6 +19,7 @@ from evals.run_enterprise_evals import (
     _report_paths,
     evaluate_cases,
     load_benchmark_config,
+    summarize_rows,
 )
 
 EXPERIMENTS = {
@@ -41,6 +42,26 @@ def _git_commit() -> str:
         return "unknown"
 
 
+def _git_dirty() -> bool:
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "status",
+                "--porcelain",
+                "--",
+                ".",
+                ":(exclude).superpowers/**",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return bool(result.stdout.strip())
+    except (OSError, subprocess.SubprocessError):
+        return True
+
+
 def run_ablation(
     cases: Sequence[EnterpriseCase],
     *,
@@ -51,9 +72,13 @@ def run_ablation(
     for name, experiment in EXPERIMENTS.items():
         config = replace(base_config, **experiment)
         reports[name] = evaluate_cases(cases, orchestrator_factory(), config)
+    commit = _git_commit()
     return {
         "generated_at": datetime.now(UTC).isoformat(),
-        "git_commit": _git_commit(),
+        "git_commit": commit,
+        "raw_execution_git_commit": commit,
+        "aggregation_git_commit": commit,
+        "aggregation_git_dirty": _git_dirty(),
         "base_configuration": base_config.public_dict(),
         "experiments": reports,
     }
@@ -94,10 +119,15 @@ def ablation_markdown(report: dict[str, Any]) -> str:
         "拒答准确率",
         "端到端 P95(ms)",
     ]
+    execution_commit = report.get("raw_execution_git_commit", report.get("git_commit", "unknown"))
+    aggregation_commit = report.get("aggregation_git_commit", report.get("git_commit", "unknown"))
+    aggregation_dirty = bool(report.get("aggregation_git_dirty", False))
     sections = [
         "# 企业知识库 RAG 消融实验\n",
         f"生成时间：{report['generated_at']}  ",
-        f"Git Commit：`{report['git_commit']}`\n",
+        f"原始执行 Commit：`{execution_commit}`  ",
+        f"聚合 Commit：`{aggregation_commit}`  ",
+        f"聚合工作区 Dirty：`{str(aggregation_dirty).lower()}`\n",
         "## 总体对比\n",
         _markdown_table(headers, _comparison_rows(report)),
     ]
@@ -132,6 +162,36 @@ def write_ablation_report(
     return json_path, markdown_path
 
 
+def reaggregate_ablation_report(
+    source: str | Path,
+    output: str | Path,
+) -> tuple[dict[str, Any], Path, Path]:
+    """Recompute saved case aggregates without constructing an orchestrator."""
+    report = json.loads(Path(source).read_text(encoding="utf-8"))
+    for experiment in report["experiments"].values():
+        rows = list(experiment["cases"])
+        experiment["case_count"] = len(rows)
+        experiment["summary"] = summarize_rows(rows)
+        experiment["by_difficulty"] = {
+            difficulty: summarize_rows(
+                [row for row in rows if row["difficulty"] == difficulty]
+            )
+            for difficulty in ("easy", "medium", "hard")
+        }
+
+    aggregation_commit = _git_commit()
+    report["generated_at"] = datetime.now(UTC).isoformat()
+    report["raw_execution_git_commit"] = report.get(
+        "raw_execution_git_commit",
+        report.get("git_commit", "unknown"),
+    )
+    report["aggregation_git_commit"] = aggregation_commit
+    report["aggregation_git_dirty"] = _git_dirty()
+    report["git_commit"] = aggregation_commit
+    json_path, markdown_path = write_ablation_report(report, output)
+    return report, json_path, markdown_path
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", default="evals/datasets/enterprise_30.jsonl")
@@ -139,11 +199,23 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", default="deepseek-chat")
     parser.add_argument("--embedding-profile", default="st_bge_large_zh")
     parser.add_argument("--output", default="evals/reports/enterprise_ablation.json")
+    parser.add_argument(
+        "--reaggregate-from",
+        help="Recompute metrics from a saved ablation JSON without any model calls",
+    )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.reaggregate_from:
+        _report, json_path, markdown_path = reaggregate_ablation_report(
+            args.reaggregate_from,
+            args.output,
+        )
+        print(f"JSON: {json_path}")
+        print(f"Markdown: {markdown_path}")
+        return 0
     cases = load_enterprise_cases(args.dataset)
     cfg = load_benchmark_config("config.yaml")
     report = run_ablation(

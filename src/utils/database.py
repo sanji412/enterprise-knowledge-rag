@@ -189,6 +189,36 @@ class VectorDatabase:
             )
             logger.info("Qdrant collection %r created", profile_collection_name)
 
+    def delete_collection_family(self, base_collection_name: str) -> List[str]:
+        """Delete an exact collection and all embedding-profile variants."""
+        prefix = f"{base_collection_name}__"
+        if self.mode == "dev":
+            collections = self.chroma_client.list_collections()
+            names = [
+                item if isinstance(item, str) else str(item.name)
+                for item in collections
+            ]
+            targets = [
+                name
+                for name in names
+                if name == base_collection_name or name.startswith(prefix)
+            ]
+            for name in targets:
+                self.chroma_client.delete_collection(name=name)
+        else:
+            collections = self.qdrant_client.get_collections().collections
+            names = [str(item.name) for item in collections]
+            targets = [
+                name
+                for name in names
+                if name == base_collection_name or name.startswith(prefix)
+            ]
+            for name in targets:
+                self.qdrant_client.delete_collection(collection_name=name)
+        if targets:
+            logger.info("Deleted vector collections: %s", ", ".join(targets))
+        return targets
+
     @staticmethod
     def _qdrant_collection_vector_size(info: Any) -> int:
         vectors = info.config.params.vectors

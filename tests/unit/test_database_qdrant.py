@@ -118,3 +118,39 @@ def test_sentence_transformer_batch_applies_profile_normalization(fake_qdrant_db
         show_progress_bar=False,
         normalize_embeddings=True,
     )
+
+
+def test_qdrant_deletes_exact_session_collection_and_profile_variants(fake_qdrant_db):
+    fake_qdrant_db.qdrant_client.get_collections.return_value = SimpleNamespace(
+        collections=[
+            SimpleNamespace(name="documents"),
+            SimpleNamespace(name="sess_abc123"),
+            SimpleNamespace(name="sess_abc123__st_bge_large_zh"),
+            SimpleNamespace(name="sess_other"),
+        ]
+    )
+
+    deleted = fake_qdrant_db.delete_collection_family("sess_abc123")
+
+    assert deleted == ["sess_abc123", "sess_abc123__st_bge_large_zh"]
+    assert [
+        call.kwargs["collection_name"]
+        for call in fake_qdrant_db.qdrant_client.delete_collection.call_args_list
+    ] == deleted
+
+
+def test_chroma_deletes_exact_session_collection_and_profile_variants():
+    db = VectorDatabase(mode="dev")
+    client = MagicMock()
+    client.list_collections.return_value = [
+        SimpleNamespace(name="documents"),
+        SimpleNamespace(name="sess_abc123"),
+        SimpleNamespace(name="sess_abc123__st_bge_large_zh"),
+        SimpleNamespace(name="sess_other"),
+    ]
+    db._chroma_client = client
+
+    deleted = db.delete_collection_family("sess_abc123")
+
+    assert deleted == ["sess_abc123", "sess_abc123__st_bge_large_zh"]
+    assert [call.kwargs["name"] for call in client.delete_collection.call_args_list] == deleted

@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from evals import run_ablation as ablation_module
 from evals.enterprise_schema import EnterpriseCase
 from evals.run_ablation import EXPERIMENTS, run_ablation, write_ablation_report
+from evals.run_ablation import main as ablation_main
 from evals.run_enterprise_evals import (
     EvaluationConfig,
     evaluate_cases,
@@ -137,3 +139,101 @@ def test_benchmark_config_disables_unmeasured_inline_nli(tmp_path: Path):
     cfg = load_benchmark_config(config_path)
 
     assert cfg.evaluation.inline_enabled is False
+
+
+def _saved_ablation_report() -> dict:
+    answerable = {
+        "id": "C01",
+        "difficulty": "easy",
+        "answerable": True,
+        "status": "answered",
+        "hit_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "fact_coverage": 1.0,
+        "citation_resolution_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "refusal_accuracy": 1.0,
+        "step_latencies": {"retrieval": 10.0},
+        "processing_time_ms": 20.0,
+        "execution_success": 1.0,
+    }
+    unanswerable = {
+        "id": "C02",
+        "difficulty": "hard",
+        "answerable": False,
+        "status": "refused",
+        "hit_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "fact_coverage": 0.0,
+        "citation_resolution_rate": 0.0,
+        "citation_accuracy": 0.0,
+        "refusal_accuracy": 1.0,
+        "step_latencies": {"retrieval": 30.0},
+        "processing_time_ms": 40.0,
+        "execution_success": 1.0,
+    }
+    return {
+        "generated_at": "2026-08-29T00:00:00+00:00",
+        "git_commit": "b9c3cb8",
+        "base_configuration": {},
+        "experiments": {
+            "hybrid": {
+                "configuration": {
+                    "provider": "deepseek",
+                    "model": "deepseek-chat",
+                    "retrieval_mode": "hybrid",
+                    "use_rerank": False,
+                },
+                "summary": {"hit_at_5": -1.0},
+                "by_difficulty": {},
+                "cases": [answerable, unanswerable],
+            }
+        },
+    }
+
+
+def test_reaggregate_ablation_uses_saved_cases_and_eligible_denominators(
+    tmp_path: Path,
+    monkeypatch,
+):
+    source = tmp_path / "frozen.json"
+    source.write_text(json.dumps(_saved_ablation_report()), encoding="utf-8")
+    monkeypatch.setattr(ablation_module, "_git_commit", lambda: "cf0eb9d")
+    monkeypatch.setattr(ablation_module, "_git_dirty", lambda: False)
+
+    report, json_path, markdown_path = ablation_module.reaggregate_ablation_report(
+        source,
+        tmp_path / "reaggregated.json",
+    )
+
+    summary = report["experiments"]["hybrid"]["summary"]
+    assert summary["hit_at_5"] == 1.0
+    assert summary["citation_accuracy"] == 1.0
+    assert summary["refusal_accuracy"] == 1.0
+    assert report["raw_execution_git_commit"] == "b9c3cb8"
+    assert report["aggregation_git_commit"] == "cf0eb9d"
+    assert report["aggregation_git_dirty"] is False
+    assert report["git_commit"] == "cf0eb9d"
+    assert json_path.exists()
+    markdown = markdown_path.read_text(encoding="utf-8")
+    assert "b9c3cb8" in markdown
+    assert "cf0eb9d" in markdown
+    assert "false" in markdown.lower()
+
+
+def test_reaggregate_cli_never_loads_dataset_config_or_orchestrator(tmp_path: Path, monkeypatch):
+    source = tmp_path / "frozen.json"
+    output = tmp_path / "offline.json"
+    source.write_text(json.dumps(_saved_ablation_report()), encoding="utf-8")
+
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("live evaluation dependency was called")
+
+    monkeypatch.setattr(ablation_module, "load_enterprise_cases", forbidden)
+    monkeypatch.setattr(ablation_module, "load_benchmark_config", forbidden)
+    monkeypatch.setattr(ablation_module, "RAGOrchestrator", forbidden)
+
+    assert ablation_main(
+        ["--reaggregate-from", str(source), "--output", str(output)]
+    ) == 0
+    assert output.exists()

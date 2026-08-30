@@ -187,15 +187,16 @@ React 页面支持三种知识范围：
 
 - `global`：只查冻结企业示例库。
 - `session`：只查当前会话上传的文件。
-- `both`：合并全局库和当前会话库（前端文案显示为“合并检索”）。
+- `both`：对全局库和当前会话库候选按各自排名确定性交错，按稳定 chunk ID 去重后截断，避免全局 Top K 占满候选（前端文案显示为“合并检索”）。
 
-会话文件、BM25 索引和 Qdrant collection 使用会话命名空间隔离；退出或过期时清理会话数据，不删除全局冻结语料。
+会话文件、BM25 索引和 Qdrant collection 使用会话命名空间隔离；显式删除、TTL 过期和容量淘汰均先删除精确的 `sess_<sid>` collection 及全部 profile 后缀变体，再删除本地文件，不匹配全局冻结语料。向量清理失败时保留本地会话状态并暴露错误，以便重试而不是错误宣称隐私清理完成。
 
 ## 7. 安全与可运维性
 
 - DeepSeek Key 只从环境变量或单次请求头进入后端，不写入日志、响应、索引和 Git。
 - `docker/.env` 被忽略；仓库只提交 `docker/.env.example`。
-- API Key 与 Redis 限流保护接口；演示用 `dev-key-1` 不能当成生产凭据。
+- `DOC_PROFILE=demo` 为本地 React 演示绕过网关鉴权；默认 Compose 将 API、Qdrant、Redis 绑定到 `127.0.0.1`，这是 demo 的安全边界。`DOC_API_KEYS` 只在非 demo profile 生效，不能在保留绕过时把端口发布到 LAN/公网。
+- 限流的网关 Key 客户端标识只保留 SHA-256 摘要前缀，日志和 Redis key 不含原始 Key；无 Key 时维持 IP 回退。
 - Embedding 与重排模型固化到 Docker 缓存，并支持 Hugging Face offline 标志。
 - `/health`、`/metrics`、结构化延迟字段和检索轨迹用于诊断。
 - `scripts/docker-smoke.sh` 真实验证健康、三文件入库、有引用回答、越界拒答以及 Key 不出现在响应中。

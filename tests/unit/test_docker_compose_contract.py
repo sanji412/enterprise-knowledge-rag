@@ -17,9 +17,13 @@ def test_compose_uses_conflict_free_host_ports_and_internal_service_urls():
     compose = yaml.safe_load(Path("docker/docker-compose.yml").read_text(encoding="utf-8"))
     services = compose["services"]
 
-    assert services["api"]["ports"] == ["${APP_PORT:-8100}:8000"]
-    assert services["redis"]["ports"] == ["${REDIS_HOST_PORT:-16379}:6379"]
-    assert services["qdrant"]["ports"] == ["${QDRANT_HOST_PORT:-16333}:6333"]
+    assert services["api"]["ports"] == ["${BIND_HOST:-127.0.0.1}:${APP_PORT:-8100}:8000"]
+    assert services["redis"]["ports"] == [
+        "${BIND_HOST:-127.0.0.1}:${REDIS_HOST_PORT:-16379}:6379"
+    ]
+    assert services["qdrant"]["ports"] == [
+        "${BIND_HOST:-127.0.0.1}:${QDRANT_HOST_PORT:-16333}:6333"
+    ]
     assert "REDIS_URL=redis://redis:6379/0" in services["api"]["environment"]
     assert "QDRANT_URL=http://qdrant:6333" in services["api"]["environment"]
 
@@ -27,6 +31,7 @@ def test_compose_uses_conflict_free_host_ports_and_internal_service_urls():
 def test_env_example_preserves_compose_conflict_free_defaults():
     env_example = Path("docker/.env.example").read_text(encoding="utf-8")
 
+    assert "BIND_HOST=127.0.0.1" in env_example
     assert "APP_PORT=8100" in env_example
     assert "REDIS_HOST_PORT=16379" in env_example
     assert "QDRANT_HOST_PORT=16333" in env_example

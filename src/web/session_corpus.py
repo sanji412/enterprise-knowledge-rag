@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import threading
 import time
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
+from typing import Callable
 from uuid import uuid4
 
 SESSION_ROOT = Path("/tmp/doc-ingest-sessions")
@@ -15,6 +18,8 @@ SESSION_TTL_SECONDS = int(1800)
 JANITOR_MAX_BYTES = 1024 * 1024 * 1024
 
 _LOCK = threading.RLock()
+logger = logging.getLogger(__name__)
+VectorCleanup = Callable[[str], None]
 
 
 def _session_root() -> Path:
@@ -114,14 +119,39 @@ def list_active_sessions() -> list[SessionCorpus]:
     return sessions
 
 
-def delete_session(sid: str) -> None:
+@lru_cache(maxsize=1)
+def _default_vector_cleanup() -> VectorCleanup:
+    """Build the vector dependency only when a session is actually deleted."""
+    from src.utils.config import load_config  # noqa: PLC0415
+    from src.utils.vector_factory import build_vector_database  # noqa: PLC0415
+
+    cfg = load_config()
+    profile_name = cfg.embeddings.resolve_profile_name(None)
+    db = build_vector_database(cfg, profile_name)
+    return db.delete_collection_family
+
+
+def delete_session(sid: str, *, vector_cleanup: VectorCleanup | None = None) -> None:
     with _LOCK:
         path = _session_dir(sid)
+        cleanup = vector_cleanup or _default_vector_cleanup()
+        try:
+            cleanup(f"sess_{sid}")
+        except Exception:
+            logger.exception(
+                "Vector cleanup failed for session %s; preserving local state for retry",
+                sid,
+            )
+            raise
         if path.exists():
-            shutil.rmtree(path, ignore_errors=True)
+            shutil.rmtree(path)
 
 
-def janitor_sweep(now: float | None = None) -> int:
+def janitor_sweep(
+    now: float | None = None,
+    *,
+    vector_cleanup: VectorCleanup | None = None,
+) -> int:
     with _LOCK:
         ts = time.time() if now is None else now
         ttl = _session_ttl_seconds()
@@ -131,7 +161,7 @@ def janitor_sweep(now: float | None = None) -> int:
             touched = _touched_path(session.session_id)
             last_touch = touched.stat().st_mtime if touched.exists() else session.created_at
             if ts - last_touch > ttl:
-                delete_session(session.session_id)
+                delete_session(session.session_id, vector_cleanup=vector_cleanup)
                 deleted += 1
 
         # If disk grows beyond cap, evict oldest touched sessions.
@@ -154,7 +184,7 @@ def janitor_sweep(now: float | None = None) -> int:
                         for p in _session_dir(session.session_id).rglob("*")
                         if p.is_file()
                     )
-                    delete_session(session.session_id)
+                    delete_session(session.session_id, vector_cleanup=vector_cleanup)
                     deleted += 1
                     total_size -= before
         return deleted

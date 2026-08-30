@@ -171,6 +171,14 @@ PYTHONPATH=. .venv/bin/python -m evals.run_ablation \
   --output evals/reports/final
 ```
 
-运行器逐条记录失败，不会跳过；四组实验必须全部完成后才比较结果。若调整阈值或参数，应一次只改一个变量，再完整重跑 120 次并生成新的冻结报告。
+运行器逐条记录失败，不会跳过；四组实验必须全部完成后才比较结果。若修改会影响逐用例输出的模型、检索或生成参数，应一次只改一个变量，再完整重跑 120 次并生成新的冻结报告。
 
-本次原始执行使用 commit `b9c3cb8c19ef0015a8e0c0754beb87a7500832ea`；指标分母修正和重新聚合使用 commit `cf0eb9d`。JSON 报告同时保存 `raw_execution_git_commit` 与 `aggregation_git_commit`，保证“模型实际执行”和“指标口径”可追溯。
+如果只修改 `summarize_rows` 的指标或分母口径，直接从已保存的 `cases` 离线重新聚合，不会构造 `RAGOrchestrator` 或调用 DeepSeek：
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evals.run_ablation \
+  --reaggregate-from evals/reports/final/enterprise-final.json \
+  --output evals/reports/final/enterprise-reaggregated.json
+```
+
+本次原始执行使用 commit `b9c3cb8c19ef0015a8e0c0754beb87a7500832ea`；指标分母修正和重新聚合使用 commit `cf0eb9d`。新 JSON/Markdown 分别显示 `raw_execution_git_commit`、`aggregation_git_commit` 与 `aggregation_git_dirty`；兼容字段 `git_commit` 在离线重聚合报告中明确表示聚合 commit，保证“模型实际执行”和“指标口径”可追溯。

@@ -194,6 +194,20 @@ class RAGOrchestrator:
         return out
 
     @staticmethod
+    def _merge_scoped_results(
+        global_results: List[RetrievalResult],
+        session_results: List[RetrievalResult],
+        top_k: int,
+    ) -> List[RetrievalResult]:
+        interleaved: List[RetrievalResult] = []
+        for index in range(max(len(global_results), len(session_results))):
+            if index < len(global_results):
+                interleaved.append(global_results[index])
+            if index < len(session_results):
+                interleaved.append(session_results[index])
+        return RAGOrchestrator._dedup_results(interleaved, top_k)
+
+    @staticmethod
     def _evidence_from_results(
         items: List[RetrievalResult],
         limit: int = 5,
@@ -242,6 +256,22 @@ class RAGOrchestrator:
         )
 
     def _make_cache_key(self, req: QueryRequest, selection: Any) -> str:
+        profile_name = self.cfg.embeddings.resolve_profile_name(req.embedding_profile)
+        scope = (req.knowledge_scope or "global").strip().lower()
+        global_exists = os.path.exists(BM25_INDEX_PATH)
+        session_path = req.session_bm25_index_path
+        session_active = bool(
+            session_path
+            and req.session_collection_name
+            and os.path.exists(session_path)
+        )
+        if scope == "session" and session_active:
+            active_paths = [str(session_path)]
+        elif scope == "both" and session_active:
+            active_paths = ([BM25_INDEX_PATH] if global_exists else []) + [str(session_path)]
+        else:
+            active_paths = [BM25_INDEX_PATH]
+        revisions = ";".join(self._bm25_corpus_revision(path) for path in active_paths)
         return cache_key(
             req.query_text,
             selection.model,
@@ -252,10 +282,19 @@ class RAGOrchestrator:
             corpus_fingerprint=(
                 f"{COLLECTION_NAME}:{BM25_INDEX_PATH}|{req.knowledge_scope}|"
                 f"{req.session_collection_name or '-'}:{req.session_bm25_index_path or '-'}|"
-                f"retrieval_mode={req.retrieval_mode}"
+                f"retrieval_mode={req.retrieval_mode}|embedding_profile={profile_name}|"
+                f"bm25_revisions={revisions}"
             ),
             response_mode="stream" if req.stream else "sync",
         )
+
+    @staticmethod
+    def _bm25_corpus_revision(path: str) -> str:
+        try:
+            stat = os.stat(path)
+        except OSError:
+            return f"{path}:missing"
+        return f"{path}:size={stat.st_size}:mtime_ns={stat.st_mtime_ns}"
 
     def _retrieve_docs_for_query(
         self,
@@ -300,7 +339,11 @@ class RAGOrchestrator:
                     collection_name=req.session_collection_name or COLLECTION_NAME,
                     retrieval_mode=req.retrieval_mode,
                 )
-                fused = self._dedup_results(global_results + session_results, retrieve_k)
+                fused = self._merge_scoped_results(
+                    global_results,
+                    session_results,
+                    retrieve_k,
+                )
             else:
                 fused = self._retrieve(
                     req.query_text,

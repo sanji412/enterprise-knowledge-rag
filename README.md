@@ -81,7 +81,7 @@ flowchart LR
 
 ## Docker 快速启动
 
-需要 Docker Desktop。默认端口为应用 `8100`、Qdrant `16333`、Redis `16379`，不会占用第一个项目的端口。
+需要 Docker Desktop。默认端口为应用 `8100`、Qdrant `16333`、Redis `16379`，并由 `BIND_HOST=127.0.0.1` 只绑定宿主机回环地址。
 
 ```bash
 git clone <你的 GitHub 仓库地址>
@@ -97,6 +97,8 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 ```
 
 `docker/.env` 已被 Git 忽略，不要把真实 Key 写进文档、配置或提交记录。
+
+默认 `DOC_PROFILE=demo` 为没有网关 Key 输入框的本地 React 演示绕过 `/query` 和 `/uploads` 的网关鉴权；安全边界是 Compose 默认只监听 `127.0.0.1`。`DOC_API_KEYS` 仅在非 demo profile 生效。不要在保留 demo 绕过时把 `BIND_HOST` 改为局域网或公网地址，否则其他客户端可消耗服务端的 DeepSeek Key。
 
 ```bash
 docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --build
@@ -127,6 +129,16 @@ set +a
 ```
 
 完整启动、评测、停机和排障命令见 [运行手册](Docs/RUNBOOK.md)。
+
+已有逐用例 JSON 时，可只用保存的 `cases` 按当前指标口径离线重新聚合，不会构造编排器或调用模型：
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evals.run_ablation \
+  --reaggregate-from evals/reports/final/enterprise-final.json \
+  --output evals/reports/final/enterprise-reaggregated.json
+```
+
+新报告分别记录原始执行 commit、聚合 commit 和聚合工作区 dirty 状态；不需要重跑 120 次模型请求。
 
 ## 本地开发与验证
 
