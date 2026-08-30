@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-29T11:54:10.077930+00:00",
-  "git_commit": "b9c3cb8c19ef0015a8e0c0754beb87a7500832ea",
+  "generated_at": "2026-08-30T07:25:30.770604+00:00",
+  "git_commit": "81eca976c4bed241c75cd4770b2fa026b37e1fd2",
   "base_configuration": {
     "provider": "deepseek",
     "model": "deepseek-v4-flash",
@@ -4611,6 +4611,7 @@
     }
   },
   "raw_execution_git_commit": "b9c3cb8c19ef0015a8e0c0754beb87a7500832ea",
-  "aggregation_git_commit": "cf0eb9d4c29b6127b050a457433e094e581e8a0d",
-  "aggregated_at": "2026-08-29T11:58:42.608731+00:00"
+  "aggregation_git_commit": "81eca976c4bed241c75cd4770b2fa026b37e1fd2",
+  "aggregated_at": "2026-08-29T11:58:42.608731+00:00",
+  "aggregation_git_dirty": true
 }

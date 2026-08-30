@@ -124,10 +124,10 @@ def ablation_markdown(report: dict[str, Any]) -> str:
     aggregation_dirty = bool(report.get("aggregation_git_dirty", False))
     sections = [
         "# 企业知识库 RAG 消融实验\n",
-        f"生成时间：{report['generated_at']}  ",
-        f"原始执行 Commit：`{execution_commit}`  ",
-        f"聚合 Commit：`{aggregation_commit}`  ",
-        f"聚合工作区 Dirty：`{str(aggregation_dirty).lower()}`\n",
+        f"- 生成时间：{report['generated_at']}",
+        f"- 原始执行 Commit：`{execution_commit}`",
+        f"- 聚合 Commit：`{aggregation_commit}`",
+        f"- 聚合工作区 Dirty：`{str(aggregation_dirty).lower()}`\n",
         "## 总体对比\n",
         _markdown_table(headers, _comparison_rows(report)),
     ]

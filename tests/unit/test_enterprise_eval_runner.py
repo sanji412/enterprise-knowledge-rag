@@ -219,6 +219,7 @@ def test_reaggregate_ablation_uses_saved_cases_and_eligible_denominators(
     assert "b9c3cb8" in markdown
     assert "cf0eb9d" in markdown
     assert "false" in markdown.lower()
+    assert all(line == line.rstrip() for line in markdown.splitlines())
 
 
 def test_reaggregate_cli_never_loads_dataset_config_or_orchestrator(tmp_path: Path, monkeypatch):
