@@ -6,7 +6,7 @@ import json
 import os
 import time
 from dataclasses import dataclass
-from typing import Iterator, Optional, Protocol
+from typing import Any, Iterator, Optional, Protocol
 
 import ollama
 import requests
@@ -129,15 +129,16 @@ class OpenAICompatibleProvider:
         return key
 
     def generate(self, prompt: str, model: str, api_key_override: Optional[str] = None) -> str:
+        request_body: dict[str, Any] = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            **self.extra_body,
+        }
         resp = requests.post(
             f"{self.base_url}/chat/completions",
             headers={"Authorization": f"Bearer {self._key(api_key_override)}"},
-            json={
-                "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.1,
-                **self.extra_body,
-            },
+            json=request_body,
             timeout=self.timeout_seconds,
         )
         _raise_for_status_with_detail(resp, self.provider_name)
@@ -145,16 +146,17 @@ class OpenAICompatibleProvider:
         return str(data["choices"][0]["message"]["content"])
 
     def stream(self, prompt: str, model: str, api_key_override: Optional[str] = None) -> Iterator[str]:
+        request_body: dict[str, Any] = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "stream": True,
+            **self.extra_body,
+        }
         with requests.post(
             f"{self.base_url}/chat/completions",
             headers={"Authorization": f"Bearer {self._key(api_key_override)}"},
-            json={
-                "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.1,
-                "stream": True,
-                **self.extra_body,
-            },
+            json=request_body,
             timeout=self.timeout_seconds,
             stream=True,
         ) as resp:
@@ -162,7 +164,8 @@ class OpenAICompatibleProvider:
             for raw in resp.iter_lines(decode_unicode=True):
                 if not raw:
                     continue
-                line = raw.strip()
+                line = raw.decode("utf-8") if isinstance(raw, bytes) else raw
+                line = line.strip()
                 if not line.startswith("data:"):
                     continue
                 data = line[5:].strip()
@@ -243,7 +246,8 @@ class AnthropicProvider:
             for raw in resp.iter_lines(decode_unicode=True):
                 if not raw:
                     continue
-                line = raw.strip()
+                line = raw.decode("utf-8") if isinstance(raw, bytes) else raw
+                line = line.strip()
                 if not line.startswith("data:"):
                     continue
                 data = line[5:].strip()
@@ -297,7 +301,8 @@ class GeminiProvider:
             for raw in resp.iter_lines(decode_unicode=True):
                 if not raw:
                     continue
-                line = raw.strip()
+                line = raw.decode("utf-8") if isinstance(raw, bytes) else raw
+                line = line.strip()
                 if not line.startswith("data:"):
                     continue
                 data = line[5:].strip()

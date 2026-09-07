@@ -151,14 +151,14 @@ class HybridRetriever:
 
         if mode == "bm25":
             bm25_hits = self._run_bm25(bm25_query, ck_b)
-            results = self._single_leg_results(bm25_hits, "bm25", k)
-            self._cache.set(cache_key, results)
-            return [RetrievalResult(**row.__dict__) for row in results]
+            single_results = self._single_leg_results(bm25_hits, "bm25", k)
+            self._cache.set(cache_key, single_results)
+            return [RetrievalResult(**row.__dict__) for row in single_results]
         if mode == "vector":
             vec_hits = self._run_vector(vector_query, ck_v, filters)
-            results = self._single_leg_results(vec_hits, "vector", k)
-            self._cache.set(cache_key, results)
-            return [RetrievalResult(**row.__dict__) for row in results]
+            single_results = self._single_leg_results(vec_hits, "vector", k)
+            self._cache.set(cache_key, single_results)
+            return [RetrievalResult(**row.__dict__) for row in single_results]
 
         if cfg.parallel:
             with ThreadPoolExecutor(max_workers=2) as ex:

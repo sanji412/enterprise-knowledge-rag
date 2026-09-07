@@ -10,17 +10,22 @@ jobs:
   sync:
     name: Push to HF Spaces
     runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_USERNAME: ${{ vars.HF_USERNAME }}
+      HF_SPACE_NAME: ${{ vars.HF_SPACE_NAME }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
 
+      - name: Skip Hugging Face sync when configuration is missing
+        if: ${{ env.HF_TOKEN == '' || env.HF_USERNAME == '' || env.HF_SPACE_NAME == '' }}
+        run: echo "Hugging Face deployment is not configured; skipping sync."
+
       - name: Push to Hugging Face Spaces
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_USERNAME: ${{ vars.HF_USERNAME }}
-          HF_SPACE_NAME: ${{ vars.HF_SPACE_NAME }}
+        if: ${{ env.HF_TOKEN != '' && env.HF_USERNAME != '' && env.HF_SPACE_NAME != '' }}
         run: |
           git config --global user.email "ci@github-actions"
           git config --global user.name "GitHub Actions"

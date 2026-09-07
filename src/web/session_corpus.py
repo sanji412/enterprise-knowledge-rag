@@ -19,7 +19,7 @@ JANITOR_MAX_BYTES = 1024 * 1024 * 1024
 
 _LOCK = threading.RLock()
 logger = logging.getLogger(__name__)
-VectorCleanup = Callable[[str], None]
+VectorCleanup = Callable[[str], object]
 
 
 def _session_root() -> Path:

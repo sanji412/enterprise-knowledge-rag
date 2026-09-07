@@ -9,10 +9,13 @@ import time
 from contextlib import contextmanager
 from typing import Any, Dict, Optional
 
+_Langfuse: Any
 try:
-    from langfuse import Langfuse as _Langfuse
+    from langfuse import Langfuse
 except ImportError:
     _Langfuse = None
+else:
+    _Langfuse = Langfuse
 
 logger = logging.getLogger(__name__)
 
